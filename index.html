@@ -969,14 +969,39 @@
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
                         <p>نتمنى لكم تجربة تسوق سعيدة</p>
-                        <button class="new-invoice-btn" onclick="editInvoice(${index})">
-                            تعديل الفاتورة
-                        </button>
+                        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
+                            <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
+                                تعديل الفاتورة
+                            </button>
+                            <button class="new-invoice-btn" onclick="printReceipt()" style="background: #2ecc71;">
+                                طباعة
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
             document.body.appendChild(detailsModal);
             detailsModal.style.display = 'block';
+        }
+
+        function printReceipt() {
+            const receiptContent = document.querySelector('.receipt-style').cloneNode(true);
+            // إخفاء أزرار التعديل والطباعة
+            const actionButtons = receiptContent.querySelector('.receipt-footer div');
+            if (actionButtons) {
+                actionButtons.style.display = 'none';
+            }
+            
+            const printWindow = window.open('', '', 'height=600,width=800');
+            printWindow.document.write('<html><head><title>طباعة الفاتورة</title>');
+            printWindow.document.write(`<style>
+                ${document.querySelector('style').innerHTML}
+            </style>`);
+            printWindow.document.write('</head><body>');
+            printWindow.document.write(receiptContent.outerHTML);
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+            printWindow.print();
         }
 
         function deleteInvoice(index) {
