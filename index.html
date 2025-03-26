@@ -432,8 +432,13 @@
             gap: 20px;
             padding: 20px;
         }
+        .fa-whatsapp {
+            margin-left: 5px;
+            font-size: 16px;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
     <div class="sidebar">
@@ -976,6 +981,9 @@
                             <button class="new-invoice-btn" onclick="printReceipt()" style="background: #2ecc71;">
                                 طباعة
                             </button>
+                            <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
+                                <i class="fab fa-whatsapp"></i> مشاركة واتساب
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1048,14 +1056,6 @@
             }
 
             const invoice = invoices[index];
-            toggleInvoiceForm();
-            
-            // تخزين مؤشر الفاتورة للتحديث لاحقاً
-            document.getElementById('invoiceModal').dataset.editIndex = index;
-            
-            // ملء النموذج ببيانات الفاتورة
-            document.getElementById('invoiceNumber').value = invoice.number;
-            document.getElementById('invoiceDate').value = invoice.date;
             document.getElementById('customerName').value = invoice.customer;
             document.getElementById('phone').value = invoice.phone;
             document.getElementById('governorate').value = invoice.governorate;
