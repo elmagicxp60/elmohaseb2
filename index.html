@@ -436,6 +436,138 @@
             margin-left: 5px;
             font-size: 16px;
         }
+        /* تحسين تجاوب الشريط الجانبي */
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+            .main-content {
+                margin: 10px;
+                padding: 15px;
+            }
+            .button {
+                padding: 10px;
+                margin: 8px 0;
+                font-size: 16px;
+            }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+        }
+
+        /* تحسين تجاوب نموذج الفاتورة */
+        @media (max-width: 576px) {
+            .modal-content {
+                width: 95%;
+                margin: 20px auto;
+            }
+            .form-row, .form-row-3 {
+                grid-template-columns: 1fr;
+            }
+            .receipt-style {
+                max-width: 100%;
+                padding: 15px;
+                font-size: 12px;
+            }
+            .receipt-footer button {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+        }
+
+        /* تعديل أحجام الأزرار في الريسيت */
+        .receipt-footer .new-invoice-btn {
+            padding: 8px 15px;
+            font-size: 14px;
+            margin: 5px;
+        }
+
+        /* تحسين عرض الجداول */
+        @media (max-width: 576px) {
+            .invoice-table {
+                display: block;
+                overflow-x: auto;
+            }
+            .invoice-table th, 
+            .invoice-table td {
+                min-width: 100px;
+                font-size: 14px;
+            }
+        }
+
+        /* تحسين تجاوب الأزرار والمدخلات */
+        .action-btn {
+            padding: 4px 8px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 400px) {
+            .new-invoice-btn {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            .form-group input,
+            .form-group select {
+                font-size: 14px;
+            }
+        }
+
+        /* تحسين مظهر الإيصال للشاشات الصغيرة */
+        @media print, (max-width: 576px) {
+            .receipt-header h2 {
+                font-size: 18px;
+            }
+            .receipt-header p {
+                font-size: 12px;
+            }
+            .receipt-customer p {
+                font-size: 12px;
+            }
+            .receipt-items th,
+            .receipt-items td {
+                padding: 6px;
+                font-size: 12px;
+            }
+            .receipt-total {
+                font-size: 14px;
+            }
+        }
+
+        /* تحسين مظهر الصور */
+        .product-image-preview {
+            max-width: 100%;
+            height: auto;
+        }
+
+        /* تحسين تجاوب نموذج QR */
+        @media (max-width: 576px) {
+            .qr-modal {
+                max-width: 95%;
+            }
+            #qrCode {
+                width: 200px;
+                height: 200px;
+            }
+        }
+
+        /* تحسين تباعد العناصر */
+        .section-content {
+            padding: 10px;
+        }
+
+        @media (min-width: 769px) {
+            .section-content {
+                padding: 20px;
+            }
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
