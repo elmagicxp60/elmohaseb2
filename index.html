@@ -568,6 +568,131 @@
                 padding: 20px;
             }
         }
+
+
+        .button i {
+    margin-left: 10px;
+    font-size: 20px;
+    width: 24px;
+    text-align: center;
+}
+
+.sidebar h1 i {
+    margin-left: 10px;
+    animation: spin 4s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.button {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 15px 20px;
+}
+
+.button:hover i {
+    transform: scale(1.2);
+    transition: transform 0.3s ease;
+}
+
+
+.share-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.share-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+}
+
+.share-btn i {
+    font-size: 20px;
+}
+
+.share-btn:nth-child(2) {
+    background: #9b59b6;
+}
+
+.share-btn:nth-child(3) {
+    background: #25D366;
+}
+
+.qr-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
+
+.qr-container p {
+    text-align: center;
+    color: #555;
+    max-width: 300px;
+}
+
+.qr-container .app-link {
+    font-weight: bold;
+    color: #3498db;
+    word-break: break-all;
+    text-align: center;
+    margin-top: 10px;
+}
+
+.copy-success {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(46, 204, 113, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    z-index: 2000;
+    animation: fadeInOut 2s ease forwards;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; }
+    20% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+@media (max-width: 576px) {
+    .share-options {
+        flex-direction: column;
+    }
+    
+    .share-btn {
+        width: 100%;
+    }
+}
+
+
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -669,14 +794,33 @@ window.onload = async function() {
 </head>
 <body>
     <div class="sidebar">
-        <h1>نظام المحاسبة</h1>
-        <button class="button" onclick="showSection('invoices')">الفواتير</button>
-        <button class="button" onclick="showSection('products')">المنتجات</button>
-        <button class="button" onclick="showSection('clients')">العملاء</button>
-        <button class="button" onclick="showSection('shipping')">الشحنات</button>
-        <button class="button" onclick="showSection('reports')">التقارير</button>
-        <button class="button" onclick="showSection('settings')">الإعدادات</button>
+        <h1><i class="fas fa-calculator"></i> نظام المحاسبة</h1>
+        <button class="button" onclick="showSection('invoices')">
+            <i class="fas fa-file-invoice"></i>
+            الفواتير
+        </button>
+        <button class="button" onclick="showSection('products')">
+            <i class="fas fa-box-open"></i>
+            المنتجات
+        </button>
+        <button class="button" onclick="showSection('clients')">
+            <i class="fas fa-users"></i>
+            العملاء
+        </button>
+        <button class="button" onclick="showSection('shipping')">
+            <i class="fas fa-shipping-fast"></i>
+            الشحنات
+        </button>
+        <button class="button" onclick="showSection('reports')">
+            <i class="fas fa-chart-bar"></i>
+            التقارير
+        </button>
+        <button class="button" onclick="showSection('settings')">
+            <i class="fas fa-cog"></i>
+            الإعدادات
+        </button>
     </div>
+    
     <div class="main-content">
         <div id="invoices" class="section-content">
             <h2 class="section-title">قسم الفواتير</h2>
@@ -780,13 +924,29 @@ window.onload = async function() {
         </div>
         <div id="settings" class="section-content">
             <h2 class="section-title">الإعدادات</h2>
-            <div class="share-section">
-                <button class="share-btn" onclick="generateQRCode()">
-                    <i class="fas fa-qrcode"></i>
-                    مشاركة التطبيق
-                </button>
+            <div class="settings-card">
+                <h3><i class="fas fa-share-alt"></i> مشاركة التطبيق</h3>
+                <p>يمكنك مشاركة رابط التطبيق مع الآخرين عبر الطرق التالية:</p>
+                
+                <div class="share-options">
+                    <button class="share-btn" onclick="generateQRCode()">
+                        <i class="fas fa-qrcode"></i>
+                        مشاركة عبر QR Code
+                    </button>
+                    
+                    <button class="share-btn" onclick="copyAppLink()">
+                        <i class="fas fa-copy"></i>
+                        نسخ رابط التطبيق
+                    </button>
+                    
+                    <button class="share-btn" onclick="shareViaWhatsApp()">
+                        <i class="fab fa-whatsapp"></i>
+                        مشاركة عبر واتساب
+                    </button>
+                </div>
             </div>
         </div>
+        
     </div>
     <div id="invoiceModal" class="modal">
         <div class="modal-content">
@@ -925,17 +1085,23 @@ window.onload = async function() {
         </div>
     </div>
 
-    <!-- إضافة نافذة QR Code -->
-    <div id="qrModal" class="modal">
-        <div class="modal-content qr-modal">
-            <span class="close" onclick="closeQRModal()">&times;</span>
-            <h2>مشاركة التطبيق</h2>
-            <div class="qr-container">
-                <canvas id="qrCode"></canvas>
-                <p>امسح الكود باستخدام كاميرا الهاتف للوصول إلى التطبيق</p>
-            </div>
+   <!-- إضافة نافذة QR Code -->
+<div id="qrModal" class="modal">
+    <div class="modal-content qr-modal">
+        <span class="close" onclick="closeQRModal()">&times;</span>
+        <h2>مشاركة التطبيق</h2>
+        <div class="qr-container">
+            <canvas id="qrCode"></canvas>
+            <p>امسح الكود باستخدام كاميرا الهاتف للوصول إلى التطبيق</p>
+            <div class="app-link">https://elmagicxp60.github.io/elmohaseb2/</div>
+            <button class="share-btn" onclick="copyAppLink()">
+                <i class="fas fa-copy"></i>
+                نسخ الرابط
+            </button>
         </div>
     </div>
+</div>
+
 
     <script>
         // المتغيرات الرئيسية
@@ -1708,22 +1874,62 @@ window.onload = async function() {
             });
         }
 
-        function generateQRCode() {
-            const currentURL = window.location.href;
-            const modal = document.getElementById('qrModal');
-            
-            // إنشاء QR Code
-            const qr = new QRious({
-                element: document.getElementById('qrCode'),
-                value: currentURL,
-                size: 256,
-                backgroundAlpha: 1,
-                foreground: '#2c3e50',
-                level: 'H'
-            });
-            
-            modal.style.display = 'block';
-        }
+        // الرابط الثابت للتطبيق
+const APP_URL = "https://elmagicxp60.github.io/elmohaseb2/";
+
+function generateQRCode() {
+    const modal = document.getElementById('qrModal');
+    
+    // تحديث محتوى النافذة المنبثقة
+    const modalContent = modal.querySelector('.modal-content');
+    modalContent.innerHTML = `
+        <span class="close" onclick="closeQRModal()">&times;</span>
+        <h2>مشاركة التطبيق</h2>
+        <div class="qr-container">
+            <canvas id="qrCode"></canvas>
+            <p>امسح الكود باستخدام كاميرا الهاتف للوصول إلى التطبيق</p>
+            <div class="app-link">${APP_URL}</div>
+            <button class="share-btn" onclick="copyAppLink()">
+                <i class="fas fa-copy"></i>
+                نسخ الرابط
+            </button>
+        </div>
+    `;
+    
+    // إنشاء QR Code
+    const qr = new QRious({
+        element: document.getElementById('qrCode'),
+        value: APP_URL,
+        size: 256,
+        backgroundAlpha: 1,
+        foreground: '#2c3e50',
+        level: 'H'
+    });
+    
+    modal.style.display = 'block';
+}
+
+function copyAppLink() {
+    navigator.clipboard.writeText(APP_URL).then(() => {
+        const notification = document.createElement('div');
+        notification.className = 'copy-success';
+        notification.textContent = 'تم نسخ الرابط بنجاح!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    }).catch(err => {
+        console.error('فشل في نسخ الرابط: ', err);
+        alert('حدث خطأ أثناء نسخ الرابط');
+    });
+}
+
+function shareViaWhatsApp() {
+    const whatsappURL = `https://wa.me/?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
+    window.open(whatsappURL);
+}
+
 
         function closeQRModal() {
             document.getElementById('qrModal').style.display = 'none';
@@ -1801,7 +2007,9 @@ window.onload = async function() {
                     </button>
                     <button class="action-btn paid-btn" onclick="updateShipmentStatus(${invoices.indexOf(inv)}, 'paid')"
                             ${inv.paid ? 'disabled' : ''}>
-                        تم الدفع
+                       مدفوعه
+                                                    
+
                     </button>
                 </td>
             </tr>
