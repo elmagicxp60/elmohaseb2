@@ -2085,6 +2085,7 @@ function shareOnWhatsApp(index) {
 
         // مشاركة عبر واتساب بيزنس
         const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
+        const whatsappURL = `https://wa.me/${phoneNumber}`;
         const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
         window.open(whatsappBusinessURL);
     });
