@@ -1974,7 +1974,8 @@ function shareViaWhatsApp() {
 
                 // مشاركة عبر واتساب
                 const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
-                const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
+                const whatsappURL = `https://wa.me/${phoneNumber}`;
+
 
                 window.open(whatsappURL);
             });
