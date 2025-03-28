@@ -1929,9 +1929,10 @@ function copyAppLink() {
     });
 }
 
+// دالة مشاركة التطبيق عبر واتساب بيزنس
 function shareViaWhatsApp() {
-    const whatsappURL = `https://wa.me/?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
-    window.open(whatsappURL);
+    const whatsappBusinessURL = `https://api.whatsapp.com/send?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
+    window.open(whatsappBusinessURL);
 }
 
 
