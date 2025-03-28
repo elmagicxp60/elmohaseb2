@@ -1940,46 +1940,46 @@ function shareViaWhatsApp() {
             document.getElementById('qrModal').style.display = 'none';
         }
 
-        function shareOnWhatsApp(index) {
-            const invoice = invoices[index];
-            const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
-            
-            // إخفاء الأزرار قبل التحويل إلى صورة
-            const actionButtons = receiptElement.querySelector('.receipt-footer div');
-            if (actionButtons) {
-                actionButtons.style.display = 'none';
-            }
+       function shareOnWhatsApp(index) {
+    const invoice = invoices[index];
+    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
+    
+    // إخفاء الأزرار قبل التحويل إلى صورة
+    const actionButtons = receiptElement.querySelector('.receipt-footer div');
+    if (actionButtons) {
+        actionButtons.style.display = 'none';
+    }
 
-            // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
-            receiptElement.style.position = 'fixed';
-            receiptElement.style.left = '-9999px';
-            document.body.appendChild(receiptElement);
+    // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
+    receiptElement.style.position = 'fixed';
+    receiptElement.style.left = '-9999px';
+    document.body.appendChild(receiptElement);
 
-            html2canvas(receiptElement, {
-                scale: 2,
-                backgroundColor: '#ffffff',
-                logging: false
-            }).then(canvas => {
-                // إزالة العنصر المؤقت
-                document.body.removeChild(receiptElement);
-                
-                // تحويل الصورة إلى Base64
-                const image = canvas.toDataURL('image/jpeg', 0.8);
-                
-                // تحميل الصورة للجهاز
-                const downloadLink = document.createElement('a');
-                downloadLink.download = `invoice-${invoice.number}.jpg`;
-                downloadLink.href = image;
-                downloadLink.click();
+    html2canvas(receiptElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false
+    }).then(canvas => {
+        // إزالة العنصر المؤقت
+        document.body.removeChild(receiptElement);
+        
+        // تحويل الصورة إلى Base64
+        const image = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // تحميل الصورة للجهاز
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `invoice-${invoice.number}.jpg`;
+        downloadLink.href = image;
+        downloadLink.click();
 
-                // مشاركة عبر واتساب
-                const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
-                const whatsappURL = `https://wa.me/${phoneNumber}`;
+        // مشاركة عبر واتساب بيزنس
+        const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
+        const whatsappURL = `https://wa.me/${phoneNumber}`;
+        const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
+        window.open(whatsappBusinessURL);
+    });
+}
 
-
-                window.open(whatsappURL);
-            });
-        }
 
         // تحميل البيانات عند بدء التطبيق
         document.addEventListener('DOMContentLoaded', () => {
@@ -2052,45 +2052,6 @@ function shareViaWhatsApp() {
 }
 
 // دالة مشاركة الفاتورة عبر واتساب بيزنس
-function shareOnWhatsApp(index) {
-    const invoice = invoices[index];
-    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
-    
-    // إخفاء الأزرار قبل التحويل إلى صورة
-    const actionButtons = receiptElement.querySelector('.receipt-footer div');
-    if (actionButtons) {
-        actionButtons.style.display = 'none';
-    }
-
-    // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
-    receiptElement.style.position = 'fixed';
-    receiptElement.style.left = '-9999px';
-    document.body.appendChild(receiptElement);
-
-    html2canvas(receiptElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false
-    }).then(canvas => {
-        // إزالة العنصر المؤقت
-        document.body.removeChild(receiptElement);
-        
-        // تحويل الصورة إلى Base64
-        const image = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // تحميل الصورة للجهاز
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `invoice-${invoice.number}.jpg`;
-        downloadLink.href = image;
-        downloadLink.click();
-
-        // مشاركة عبر واتساب بيزنس
-        const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
-        const whatsappURL = `https://wa.me/${phoneNumber}`;
-        const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
-        window.open(whatsappBusinessURL);
-    });
-}
 
 
     // حفظ التغييرات في Firebase
