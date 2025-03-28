@@ -1356,7 +1356,7 @@ window.onload = async function() {
                                 طباعة
                             </button>
                            <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
-    <i class="fab fa-whatsapp"></i> مشاركة عبر واتساب بيزنس
+    <i class="fab fa-whatsapp"></i> مشاركة عبر واتساب 
 </button>
 
                         </div>
@@ -1975,6 +1975,8 @@ function shareViaWhatsApp() {
                 // مشاركة عبر واتساب
                 const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
                 const whatsappURL = `https://wa.me/${phoneNumber}`;
+                const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
+
                 window.open(whatsappURL);
             });
         }
