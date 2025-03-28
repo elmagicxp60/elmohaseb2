@@ -1310,7 +1310,8 @@ window.onload = async function() {
                     <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
                     <div class="receipt-header">
                         <h2>فاتورة مبيعات</h2>
-                        <h3>فرفشة ستور</h3>
+                        <h3> فرفشة ستور</h2>
+
                         <p>رقم الفاتورة: ${invoice.number}</p>
                         <p>التاريخ: ${invoice.date}</p>
                     </div>
@@ -1345,7 +1346,7 @@ window.onload = async function() {
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
-                       <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة 🌹</p>
+                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة</p>
                         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                             <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
                                 تعديل الفاتورة
@@ -1353,8 +1354,8 @@ window.onload = async function() {
                             <button class="new-invoice-btn" onclick="printReceipt()" style="background: #2ecc71;">
                                 طباعة
                             </button>
-                            <button class="new-invoice-btn" onclick="showWhatsAppOptions(${index})" style="background: #25D366;">
-                               <i class="fab fa-whatsapp"></i> مشاركة واتساب
+                            <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
+                                <i class="fab fa-whatsapp"></i> مشاركة واتساب
                             </button>
                         </div>
                     </div>
@@ -1370,92 +1371,7 @@ window.onload = async function() {
             const actionButtons = receiptContent.querySelector('.receipt-footer div');
             if (actionButtons) {
                 actionButtons.style.display = 'none';
-            } 
-        }
-
-            function showWhatsAppOptions(index) {
-    // إنشاء صورة الإيصال أولاً
-    const invoice = invoices[index];
-    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
-    
-    // إخفاء الأزرار قبل التحويل إلى صورة
-    const actionButtons = receiptElement.querySelector('.receipt-footer div');
-    if (actionButtons) {
-        actionButtons.style.display = 'none';
-    }
-
-    // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
-    receiptElement.style.position = 'fixed';
-    receiptElement.style.left = '-9999px';
-    document.body.appendChild(receiptElement);
-
-    html2canvas(receiptElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false
-    }).then(canvas => {
-        // إزالة العنصر المؤقت
-        document.body.removeChild(receiptElement);
-        
-        // تحويل الصورة إلى Base64
-        const image = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // تحميل الصورة للجهاز
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `invoice-${invoice.number}.jpg`;
-        downloadLink.href = image;
-        downloadLink.click();
-
-        // إنشاء نافذة منبثقة للاختيار بين واتساب العادي وواتساب بيزنس
-        const whatsappModal = document.createElement('div');
-        whatsappModal.className = 'modal';
-        whatsappModal.id = 'whatsappModal';
-        whatsappModal.innerHTML = `
-            <div class="modal-content" style="max-width: 400px; text-align: center;">
-                <span class="close" onclick="document.getElementById('whatsappModal').remove()">&times;</span>
-                <h2>اختر نوع الواتساب</h2>
-                <p>يرجى اختيار تطبيق الواتساب الذي تريد استخدامه للمشاركة</p>
-                
-                <div style="display: flex; justify-content: space-around; margin-top: 30px;">
-                    <button class="share-btn" onclick="shareViaSpecificWhatsApp(${index}, 'regular')" style="background: #25D366;">
-                        <i class="fab fa-whatsapp" style="font-size: 24px;"></i>
-                        <span>واتساب العادي</span>
-                    </button>
-                    
-                    <button class="share-btn" onclick="shareViaSpecificWhatsApp(${index}, 'business')" style="background: #075E54;">
-                        <i class="fab fa-whatsapp" style="font-size: 24px;"></i>
-                        <span>واتساب بيزنس</span>
-                    </button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(whatsappModal);
-        whatsappModal.style.display = 'block';
-    });
-}
-
-
-            function shareViaSpecificWhatsApp(index, type) {
-    const invoice = invoices[index];
-    const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
-    
-    let whatsappURL;
-    if (type === 'business') {
-        // رابط واتساب بيزنس
-        whatsappURL = `https://wa.me/b/${phoneNumber}`;
-    } else {
-        // رابط واتساب العادي
-        whatsappURL = `https://wa.me/${phoneNumber}`;
-    }
-    
-    // إغلاق النافذة المنبثقة
-    const modal = document.getElementById('whatsappModal');
-    if (modal) modal.remove();
-    
-    // فتح الرابط
-    window.open(whatsappURL);
-}
-
+            }
             
             const printWindow = window.open('', '', 'height=600,width=800');
             printWindow.document.write('<html><head><title>طباعة الفاتورة</title>');
@@ -1467,7 +1383,7 @@ window.onload = async function() {
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
-        
+        }
 
         function deleteInvoice(index) {
             if (confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
