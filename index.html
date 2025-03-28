@@ -940,9 +940,10 @@ window.onload = async function() {
                     </button>
                     
                     <button class="share-btn" onclick="shareViaWhatsApp()">
-                        <i class="fab fa-whatsapp"></i>
-                        مشاركة عبر واتساب
-                    </button>
+    <i class="fab fa-whatsapp"></i>
+    مشاركة عبر واتساب بيزنس
+</button>
+
                 </div>
             </div>
         </div>
@@ -1354,9 +1355,10 @@ window.onload = async function() {
                             <button class="new-invoice-btn" onclick="printReceipt()" style="background: #2ecc71;">
                                 طباعة
                             </button>
-                            <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
-                                <i class="fab fa-whatsapp"></i> مشاركة واتساب
-                            </button>
+                           <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
+    <i class="fab fa-whatsapp"></i> مشاركة عبر واتساب بيزنس
+</button>
+
                         </div>
                     </div>
                 </div>
@@ -2039,6 +2041,53 @@ function updateShipmentStatus(index, status) {
             invoice.paid = true;
             break;
     }
+
+    // دالة مشاركة التطبيق عبر واتساب بيزنس
+function shareViaWhatsApp() {
+    const whatsappBusinessURL = `https://api.whatsapp.com/send?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
+    window.open(whatsappBusinessURL);
+}
+
+// دالة مشاركة الفاتورة عبر واتساب بيزنس
+function shareOnWhatsApp(index) {
+    const invoice = invoices[index];
+    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
+    
+    // إخفاء الأزرار قبل التحويل إلى صورة
+    const actionButtons = receiptElement.querySelector('.receipt-footer div');
+    if (actionButtons) {
+        actionButtons.style.display = 'none';
+    }
+
+    // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
+    receiptElement.style.position = 'fixed';
+    receiptElement.style.left = '-9999px';
+    document.body.appendChild(receiptElement);
+
+    html2canvas(receiptElement, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false
+    }).then(canvas => {
+        // إزالة العنصر المؤقت
+        document.body.removeChild(receiptElement);
+        
+        // تحويل الصورة إلى Base64
+        const image = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // تحميل الصورة للجهاز
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `invoice-${invoice.number}.jpg`;
+        downloadLink.href = image;
+        downloadLink.click();
+
+        // مشاركة عبر واتساب بيزنس
+        const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
+        const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
+        window.open(whatsappBusinessURL);
+    });
+}
+
 
     // حفظ التغييرات في Firebase
     firebaseHelper.saveData('invoices', invoices)
