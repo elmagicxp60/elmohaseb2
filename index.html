@@ -1371,6 +1371,7 @@ window.onload = async function() {
             if (actionButtons) {
                 actionButtons.style.display = 'none';
             } 
+        }
 
             function showWhatsAppOptions(index) {
     // إنشاء صورة الإيصال أولاً
@@ -1466,7 +1467,7 @@ window.onload = async function() {
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
-        }
+        
 
         function deleteInvoice(index) {
             if (confirm('هل أنت متأكد من حذف هذه الفاتورة؟')) {
