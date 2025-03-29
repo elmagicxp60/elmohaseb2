@@ -691,9 +691,39 @@
     }
 }
 
+.search-box {
+    position: relative;
+    width: 300px;
+}
+
+.search-input {
+    width: 100%;
+    padding: 10px 35px 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    outline: none;
+}
+
+.search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+}
 
 
-    </style>
+
+  
+  
+</style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -704,6 +734,8 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
     <script>
+
+        
         // تكوين Firebase
         const firebaseConfig = {
   apiKey: "AIzaSyCk9KgkP9IBBJSuyjCp-UYeokZ2dhsYZcw",
@@ -821,10 +853,12 @@ window.onload = async function() {
         </button>
     </div>
     
-    <div class="main-content">
+    <div class="main-content"> 
+
         <div id="invoices" class="section-content">
             <h2 class="section-title">قسم الفواتير</h2>
-            <button class="new-invoice-btn" onclick="toggleInvoiceForm()">إنشاء فاتورة جديدة</button>
+
+      
             
             <div id="invoiceForm" class="invoice-form">
                 <h3>إنشاء فاتورة جديدة</h3>
@@ -845,12 +879,10 @@ window.onload = async function() {
         </div>
         <div id="products" class="section-content">
             <h2 class="section-title">قسم المنتجات</h2>
-            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
             <div id="productsList"></div>
         </div>
         <div id="clients" class="section-content">
             <h2 class="section-title">قسم العملاء</h2>
-            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
             <div id="clientsList"></div>
         </div>
 
@@ -940,10 +972,9 @@ window.onload = async function() {
                     </button>
                     
                     <button class="share-btn" onclick="shareViaWhatsApp()">
-    <i class="fab fa-whatsapp"></i>
-    مشاركة عبر واتساب بيزنس
-</button>
-
+                        <i class="fab fa-whatsapp"></i>
+                        مشاركة عبر واتساب
+                    </button>
                 </div>
             </div>
         </div>
@@ -1347,7 +1378,7 @@ window.onload = async function() {
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
-                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة 🌹</p>
+                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة</p>
                         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                             <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
                                 تعديل الفاتورة
@@ -1355,10 +1386,9 @@ window.onload = async function() {
                             <button class="new-invoice-btn" onclick="printReceipt()" style="background: #2ecc71;">
                                 طباعة
                             </button>
-                           <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
-    <i class="fab fa-whatsapp"></i> مشاركة عبر واتساب 
-</button>
-
+                            <button class="new-invoice-btn" onclick="shareOnWhatsApp(${index})" style="background: #25D366;">
+                                <i class="fab fa-whatsapp"></i> مشاركة واتساب
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1620,42 +1650,66 @@ window.onload = async function() {
         }
 
         function updateProductsList() {
-            const productsList = document.getElementById('productsList');
-            productsList.innerHTML = `
-                <table class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>الصورة</th>
-                            <th>اسم المنتج</th>
-                            <th>سعر الشراء</th>
-                            <th>سعر البيع</th>
-                            <th>الكمية</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${products.map(product => `
-                            <tr>
-                                <td>
-                                    <img src="${product.image}" 
-                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                         onclick="showProductImage('${product.image}')"
-                                         title="انقر لتكبير الصورة">
-                                </td>
-                                <td>${product.name}</td>
-                                <td>${product.buyPrice}</td>
-                                <td>${product.sellPrice}</td>
-                                <td>${product.quantity}</td>
-                                <td>
-                                    <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
-                                    <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+    const productsSection = document.getElementById('products');
+    
+    // إضافة مربع البحث وزر إضافة منتج جديد
+    if (!document.querySelector('.products-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'products-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
+            <div class="search-box">
+                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم بعد العنوان
+        const titleElement = productsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول المنتجات
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = `
+        <table id="productsTable" class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الصورة</th>
+                    <th>اسم المنتج</th>
+                    <th>سعر الشراء</th>
+                    <th>سعر البيع</th>
+                    <th>الكمية</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${products.map(product => `
+                    <tr data-product-name="${product.name}">
+                        <td>
+                            <img src="${product.image}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                 onclick="showProductImage('${product.image}')"
+                                 title="انقر لتكبير الصورة">
+                        </td>
+                        <td>${product.name}</td>
+                        <td>${product.buyPrice}</td>
+                        <td>${product.sellPrice}</td>
+                        <td>${product.quantity}</td>
+                        <td>
+                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
+                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // إضافة وظيفة البحث
+    setupProductSearch();
+}
 
         function deleteProduct(id) {
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
@@ -1756,35 +1810,59 @@ window.onload = async function() {
         }
 
         function updateClientsList() {
-            const clientsList = document.getElementById('clientsList');
-            clientsList.innerHTML = `
-                <table class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>اسم العميل</th>
-                            <th>المحافظة</th>
-                            <th>رقم الهاتف</th>
-                            <th>العنوان</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${clients.map(client => `
-                            <tr>
-                                <td>${client.name}</td>
-                                <td>${client.governorate}</td>
-                                <td>${client.phone}</td>
-                                <td>${client.address}</td>
-                                <td>
-                                    <button class="action-btn details-btn" onclick="editClient(${client.id})">تعديل</button>
-                                    <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})">حذف</button>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
+    const clientsSection = document.getElementById('clients');
+    
+    // إضافة مربع البحث وزر إضافة عميل جديد
+    if (!document.querySelector('.clients-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'clients-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <div class="search-box">
+                <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم بعد العنوان
+        const titleElement = clientsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول العملاء
+    const clientsList = document.getElementById('clientsList');
+    clientsList.innerHTML = `
+        <table id="clientsTable" class="invoice-table">
+            <thead>
+                <tr>
+                    <th>اسم العميل</th>
+                    <th>المحافظة</th>
+                    <th>رقم الهاتف</th>
+                    <th>العنوان</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${clients.map(client => `
+                    <tr data-client-name="${client.name}" data-client-phone="${client.phone}">
+                        <td>${client.name}</td>
+                        <td>${client.governorate}</td>
+                        <td>${client.phone}</td>
+                        <td>${client.address}</td>
+                        <td>
+                            <button class="action-btn details-btn" onclick="editClient(${client.id})">تعديل</button>
+                            <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})">حذف</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // إضافة وظيفة البحث
+    setupClientSearch();
+}
 
         function deleteClient(id) {
             if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
@@ -1929,10 +2007,9 @@ function copyAppLink() {
     });
 }
 
-// دالة مشاركة التطبيق عبر واتساب بيزنس
 function shareViaWhatsApp() {
-    const whatsappBusinessURL = `https://api.whatsapp.com/send?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
-    window.open(whatsappBusinessURL);
+    const whatsappURL = `https://wa.me/?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
+    window.open(whatsappURL);
 }
 
 
@@ -1940,46 +2017,44 @@ function shareViaWhatsApp() {
             document.getElementById('qrModal').style.display = 'none';
         }
 
-       function shareOnWhatsApp(index) {
-    const invoice = invoices[index];
-    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
-    
-    // إخفاء الأزرار قبل التحويل إلى صورة
-    const actionButtons = receiptElement.querySelector('.receipt-footer div');
-    if (actionButtons) {
-        actionButtons.style.display = 'none';
-    }
+        function shareOnWhatsApp(index) {
+            const invoice = invoices[index];
+            const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
+            
+            // إخفاء الأزرار قبل التحويل إلى صورة
+            const actionButtons = receiptElement.querySelector('.receipt-footer div');
+            if (actionButtons) {
+                actionButtons.style.display = 'none';
+            }
 
-    // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
-    receiptElement.style.position = 'fixed';
-    receiptElement.style.left = '-9999px';
-    document.body.appendChild(receiptElement);
+            // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
+            receiptElement.style.position = 'fixed';
+            receiptElement.style.left = '-9999px';
+            document.body.appendChild(receiptElement);
 
-    html2canvas(receiptElement, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        logging: false
-    }).then(canvas => {
-        // إزالة العنصر المؤقت
-        document.body.removeChild(receiptElement);
-        
-        // تحويل الصورة إلى Base64
-        const image = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // تحميل الصورة للجهاز
-        const downloadLink = document.createElement('a');
-        downloadLink.download = `invoice-${invoice.number}.jpg`;
-        downloadLink.href = image;
-        downloadLink.click();
+            html2canvas(receiptElement, {
+                scale: 2,
+                backgroundColor: '#ffffff',
+                logging: false
+            }).then(canvas => {
+                // إزالة العنصر المؤقت
+                document.body.removeChild(receiptElement);
+                
+                // تحويل الصورة إلى Base64
+                const image = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // تحميل الصورة للجهاز
+                const downloadLink = document.createElement('a');
+                downloadLink.download = `invoice-${invoice.number}.jpg`;
+                downloadLink.href = image;
+                downloadLink.click();
 
-        // مشاركة عبر واتساب بيزنس
-        const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
-        const whatsappURL = `https://wa.me/${phoneNumber}`;
-        const whatsappBusinessURL = `https://api.whatsapp.com/send?phone=${phoneNumber}`;
-        window.open(whatsappBusinessURL);
-    });
-}
-
+                // مشاركة عبر واتساب
+                const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
+                const whatsappURL = `https://wa.me/${phoneNumber}`;
+                window.open(whatsappURL);
+            });
+        }
 
         // تحميل البيانات عند بدء التطبيق
         document.addEventListener('DOMContentLoaded', () => {
@@ -2045,15 +2120,6 @@ function updateShipmentStatus(index, status) {
             break;
     }
 
-    // دالة مشاركة التطبيق عبر واتساب بيزنس
-function shareViaWhatsApp() {
-    const whatsappBusinessURL = `https://api.whatsapp.com/send?text=${encodeURIComponent('تطبيق المحاسبة البسيط: ' + APP_URL)}`;
-    window.open(whatsappBusinessURL);
-}
-
-// دالة مشاركة الفاتورة عبر واتساب بيزنس
-
-
     // حفظ التغييرات في Firebase
     firebaseHelper.saveData('invoices', invoices)
         .then(() => {
@@ -2064,6 +2130,347 @@ function shareViaWhatsApp() {
             alert('حدث خطأ في تحديث حالة الشحن');
         });
 }
+
+ // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
+function updateInvoicesTable() {
+    const invoicesSection = document.getElementById('invoices');
+    
+    // إضافة مربع البحث وزر إنشاء فاتورة جديدة
+    if (!document.querySelector('.invoice-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'invoice-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="toggleInvoiceForm()">إنشاء فاتورة جديدة</button>
+            <div class="search-box">
+                <input type="text" id="invoiceSearch" placeholder="البحث برقم الفاتورة أو اسم العميل" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم قبل الجدول
+        const titleElement = invoicesSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء أو تحديث جدول الفواتير
+    if (!document.getElementById('invoicesTable')) {
+        invoicesSection.innerHTML += `
+            <table id="invoicesTable" class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>التاريخ</th>
+                        <th>اسم العميل</th>
+                        <th>الإجمالي</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        `;
+    }
+
+    // تحديث محتوى الجدول
+    const tbody = document.getElementById('invoicesTable').querySelector('tbody');
+    tbody.innerHTML = invoices.map((inv, index) => `
+        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
+            <td>${inv.number}</td>
+            <td>${inv.date}</td>
+            <td>${inv.customer}</td>
+            <td>${inv.total}</td>
+            <td>
+                <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
+                <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
+                <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
+                    ${inv.shipped ? 'تم الشحن' : 'شحن'}
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    // إضافة وظيفة البحث
+    setupInvoiceSearch();
+}
+
+// دالة البحث المحسنة
+function setupInvoiceSearch() {
+    const searchInput = document.getElementById('invoiceSearch');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#invoicesTable tbody tr');
+
+        rows.forEach(row => {
+            const invoiceNumber = row.getAttribute('data-invoice-number').toLowerCase();
+            const customerName = row.getAttribute('data-customer-name').toLowerCase();
+            
+            if (invoiceNumber.includes(searchTerm) || customerName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+
+
+
+// تعديل دالة updateProductsList لإضافة مربع البحث
+function updateProductsList() {
+    const productsSection = document.getElementById('products');
+    
+    // إضافة مربع البحث وزر إضافة منتج جديد
+    if (!document.querySelector('.products-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'products-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
+            <div class="search-box">
+                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم بعد العنوان
+        const titleElement = productsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول المنتجات
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = `
+        <table id="productsTable" class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الصورة</th>
+                    <th>اسم المنتج</th>
+                    <th>سعر الشراء</th>
+                    <th>سعر البيع</th>
+                    <th>الكمية</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${products.map(product => `
+                    <tr data-product-name="${product.name}">
+                        <td>
+                            <img src="${product.image}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                 onclick="showProductImage('${product.image}')"
+                                 title="انقر لتكبير الصورة">
+                        </td>
+                        <td>${product.name}</td>
+                        <td>${product.buyPrice}</td>
+                        <td>${product.sellPrice}</td>
+                        <td>${product.quantity}</td>
+                        <td>
+                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
+                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // إضافة وظيفة البحث
+    setupProductSearch();
+}
+
+// دالة البحث في المنتجات
+function setupProductSearch() {
+    const searchInput = document.getElementById('productSearch');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#productsTable tbody tr');
+
+        rows.forEach(row => {
+            const productName = row.getAttribute('data-product-name').toLowerCase();
+            
+            if (productName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+
+
+
+// تعديل دالة updateProductsList لإضافة مربع البحث
+function updateProductsList() {
+    const productsSection = document.getElementById('products');
+    
+    // إضافة مربع البحث وزر إضافة منتج جديد
+    if (!document.querySelector('.products-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'products-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
+            <div class="search-box">
+                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم بعد العنوان
+        const titleElement = productsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول المنتجات
+    const productsList = document.getElementById('productsList');
+    productsList.innerHTML = `
+        <table id="productsTable" class="invoice-table">
+            <thead>
+                <tr>
+                    <th>الصورة</th>
+                    <th>اسم المنتج</th>
+                    <th>سعر الشراء</th>
+                    <th>سعر البيع</th>
+                    <th>الكمية</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${products.map(product => `
+                    <tr data-product-name="${product.name}">
+                        <td>
+                            <img src="${product.image}" 
+                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                                 onclick="showProductImage('${product.image}')"
+                                 title="انقر لتكبير الصورة">
+                        </td>
+                        <td>${product.name}</td>
+                        <td>${product.buyPrice}</td>
+                        <td>${product.sellPrice}</td>
+                        <td>${product.quantity}</td>
+                        <td>
+                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
+                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // إضافة وظيفة البحث
+    setupProductSearch();
+}
+
+// دالة البحث في المنتجات
+function setupProductSearch() {
+    const searchInput = document.getElementById('productSearch');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#productsTable tbody tr');
+
+        rows.forEach(row => {
+            const productName = row.getAttribute('data-product-name').toLowerCase();
+            
+            if (productName.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+// تعديل دالة updateClientsList لإضافة مربع البحث
+function updateClientsList() {
+    const clientsSection = document.getElementById('clients');
+    
+    // إضافة مربع البحث وزر إضافة عميل جديد
+    if (!document.querySelector('.clients-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'clients-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <div class="search-box">
+                <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم بعد العنوان
+        const titleElement = clientsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول العملاء
+    const clientsList = document.getElementById('clientsList');
+    clientsList.innerHTML = `
+        <table id="clientsTable" class="invoice-table">
+            <thead>
+                <tr>
+                    <th>اسم العميل</th>
+                    <th>المحافظة</th>
+                    <th>رقم الهاتف</th>
+                    <th>العنوان</th>
+                    <th>الإجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${clients.map(client => `
+                    <tr data-client-name="${client.name}" data-client-phone="${client.phone}">
+                        <td>${client.name}</td>
+                        <td>${client.governorate}</td>
+                        <td>${client.phone}</td>
+                        <td>${client.address}</td>
+                        <td>
+                            <button class="action-btn details-btn" onclick="editClient(${client.id})">تعديل</button>
+                            <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})">حذف</button>
+                        </td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+
+    // إضافة وظيفة البحث
+    setupClientSearch();
+}
+
+// دالة البحث في العملاء
+function setupClientSearch() {
+    const searchInput = document.getElementById('clientSearch');
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#clientsTable tbody tr');
+
+        rows.forEach(row => {
+            const clientName = row.getAttribute('data-client-name').toLowerCase();
+            const clientPhone = row.getAttribute('data-client-phone').toLowerCase();
+            
+            if (clientName.includes(searchTerm) || clientPhone.includes(searchTerm)) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    });
+}
+
+
+
+
+
 
     </script>
 </body>
