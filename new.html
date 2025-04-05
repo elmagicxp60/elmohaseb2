@@ -897,81 +897,6 @@ window.onload = async function() {
     document.addEventListener('DOMContentLoaded', () => {
         updateInvoicesTable();
     });
-
-    function saveFullInvoice() {
-        const editIndex = document.getElementById('invoiceModal').dataset.editIndex;
-        const invoice = {
-            number: document.getElementById('invoiceNumber').value,
-            date: document.getElementById('invoiceDate').value,
-            customer: document.getElementById('customerName').value,
-            phone: document.getElementById('phone').value,
-            governorate: document.getElementById('governorate').value,
-            address: document.getElementById('address').value,
-            items: [...document.getElementById('invoiceItems').rows].map(row => ({
-                name: row.querySelector('.item-name').value,
-                price: row.querySelector('.item-price').value,
-                quantity: row.querySelector('.item-quantity').value,
-                total: row.querySelector('.item-total').value
-            })),
-            total: document.getElementById('totalAmount').value
-        };
-
-        if (editIndex) {
-            // تحديث الفاتورة الموجودة
-            invoice.shipped = invoices[editIndex].shipped; // الحفاظ على حالة الشحن
-            invoices[editIndex] = invoice;
-        } else {
-            // إضافة فاتورة جديدة
-            invoices.push(invoice);
-            invoiceCounter++;
-        }
-
-        // حفظ في Firebase
-        firebaseHelper.saveData('invoices', invoices)
-            .then(() => {
-                closeInvoiceModal();
-                clearInvoiceForm();
-                alert('تم حفظ الفاتورة بنجاح');
-                updateInvoicesTable();
-            })
-            .catch(error => {
-                console.error('خطأ في حفظ الفاتورة:', error);
-                alert('حدث خطأ في حفظ الفاتورة');
-            });
-    }
-
-    function editInvoice(index) {
-        const invoiceModal = document.getElementById('invoiceModal');
-        invoiceModal.style.display = 'block';
-        invoiceModal.dataset.editIndex = index;
-
-        const invoice = invoices[index];
-        document.getElementById('invoiceNumber').value = invoice.number;
-        document.getElementById('invoiceDate').value = invoice.date;
-        document.getElementById('customerName').value = invoice.customer;
-        document.getElementById('phone').value = invoice.phone;
-        document.getElementById('governorate').value = invoice.governorate;
-        document.getElementById('address').value = invoice.address;
-
-        const invoiceItems = document.getElementById('invoiceItems');
-        invoiceItems.innerHTML = '';
-        invoice.items.forEach(item => {
-            const row = invoiceItems.insertRow();
-            row.innerHTML = `
-                <td>
-                    <div class="form-group" style="margin:0">
-                        <input type="text" class="item-name" value="${item.name}" required>
-                    </div>
-                </td>
-                <td><input type="number" class="item-price" value="${item.price}" onchange="calculateRowTotal(this)" required></td>
-                <td><input type="number" class="item-quantity" value="${item.quantity}" onchange="calculateRowTotal(this)" required></td>
-                <td><input type="number" class="item-total" value="${item.total}" readonly></td>
-                <td><button class="delete-btn" onclick="deleteRow(this)">حذف</button></td>
-            `;
-        });
-
-        document.getElementById('totalAmount').value = invoice.total;
-    }
     </script>
 </head>
 <body>
@@ -1410,46 +1335,47 @@ window.onload = async function() {
         }
 
         function saveFullInvoice() {
-        const editIndex = document.getElementById('invoiceModal').dataset.editIndex;
-        const invoice = {
-            number: document.getElementById('invoiceNumber').value,
-            date: document.getElementById('invoiceDate').value,
-            customer: document.getElementById('customerName').value,
-            phone: document.getElementById('phone').value,
-            governorate: document.getElementById('governorate').value,
-            address: document.getElementById('address').value,
-            items: [...document.getElementById('invoiceItems').rows].map(row => ({
-                name: row.querySelector('.item-name').value,
-                price: row.querySelector('.item-price').value,
-                quantity: row.querySelector('.item-quantity').value,
-                total: row.querySelector('.item-total').value
-            })),
-            total: document.getElementById('totalAmount').value
-        };
+            const editIndex = document.getElementById('invoiceModal').dataset.editIndex;
+            const invoice = {
+                number: document.getElementById('invoiceNumber').value,
+                date: document.getElementById('invoiceDate').value,
+                customer: document.getElementById('customerName').value,
+                phone: document.getElementById('phone').value,
+                governorate: document.getElementById('governorate').value,
+                address: document.getElementById('address').value,
+                items: [...document.getElementById('invoiceItems').rows].map(row => ({
+                    name: row.querySelector('.item-name').value,
+                    price: row.querySelector('.item-price').value,
+                    quantity: row.querySelector('.item-quantity').value,
+                    total: row.querySelector('.item-total').value
+                })),
+                total: document.getElementById('totalAmount').value
+            };
 
-        if (editIndex) {
-            // تحديث الفاتورة الموجودة
-            invoice.shipped = invoices[editIndex].shipped; // الحفاظ على حالة الشحن
-            invoices[editIndex] = invoice;
-        } else {
-            // إضافة فاتورة جديدة
-            invoices.push(invoice);
-            invoiceCounter++;
+            if (editIndex) {
+                // تحديث الفاتورة الموجودة
+                invoice.shipped = invoices[editIndex].shipped; // الحفاظ على حالة الشحن
+                invoices[editIndex] = invoice;
+                document.getElementById('invoiceModal').dataset.editIndex = '';
+            } else {
+                // إضافة فاتورة جديدة
+                invoices.push(invoice);
+                invoiceCounter++;
+            }
+
+            // حفظ في Firebase
+            firebaseHelper.saveData('invoices', invoices)
+                .then(() => {
+                    closeInvoiceModal();
+                    clearInvoiceForm();
+                    alert('تم حفظ الفاتورة بنجاح');
+                    updateInvoicesTable();
+                })
+                .catch(error => {
+                    console.error('خطأ في حفظ الفاتورة:', error);
+                    alert('حدث خطأ في حفظ الفاتورة');
+                });
         }
-
-        // حفظ في Firebase
-        firebaseHelper.saveData('invoices', invoices)
-            .then(() => {
-                closeInvoiceModal();
-                clearInvoiceForm();
-                alert('تم حفظ الفاتورة بنجاح');
-                updateInvoicesTable();
-            })
-            .catch(error => {
-                console.error('خطأ في حفظ الفاتورة:', error);
-                alert('حدث خطأ في حفظ الفاتورة');
-            });
-    }
 
         function updateInvoicesTable() {
         const invoicesSection = document.getElementById('invoices');
@@ -1629,37 +1555,61 @@ window.onload = async function() {
         }
 
         function editInvoice(index) {
-        const invoiceModal = document.getElementById('invoiceModal');
-        invoiceModal.style.display = 'block';
-        invoiceModal.dataset.editIndex = index;
+            // إغلاق نموذج التفاصيل
+            const detailsModal = document.getElementById('detailsModal');
+            if (detailsModal) {
+                detailsModal.remove();
+            }
 
-        const invoice = invoices[index];
-        document.getElementById('invoiceNumber').value = invoice.number;
-        document.getElementById('invoiceDate').value = invoice.date;
-        document.getElementById('customerName').value = invoice.customer;
-        document.getElementById('phone').value = invoice.phone;
-        document.getElementById('governorate').value = invoice.governorate;
-        document.getElementById('address').value = invoice.address;
+            // فتح نموذج الفاتورة
+            const invoiceModal = document.getElementById('invoiceModal');
+            invoiceModal.style.display = 'block';
+            
+            // تعيين مؤشر التعديل
+            invoiceModal.dataset.editIndex = index;
+            
+            const invoice = invoices[index];
+            
+            // تعبئة البيانات الأساسية
+            document.getElementById('invoiceNumber').value = invoice.number;
+            document.getElementById('invoiceDate').value = invoice.date;
+            document.getElementById('customerName').value = invoice.customer;
+            document.getElementById('phone').value = invoice.phone;
+            document.getElementById('governorate').value = invoice.governorate;
+            document.getElementById('address').value = invoice.address;
+            
+            // تفريغ وإعادة ملء جدول المنتجات
+            const invoiceItems = document.getElementById('invoiceItems');
+            invoiceItems.innerHTML = '';
+            
+            invoice.items.forEach(item => {
+                const uniqueId = 'item_' + Date.now() + Math.random().toString(36).substr(2, 9);
+                const row = invoiceItems.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <div class="form-group" style="margin:0">
+                            <input type="text" class="item-name" id="${uniqueId}" value="${item.name}" required>
+                        </div>
+                    </td>
+                    <td><input type="number" class="item-price" value="${item.price}" onchange="calculateRowTotal(this)" required></td>
+                    <td><input type="number" class="item-quantity" value="${item.quantity}" onchange="calculateRowTotal(this)" required></td>
+                    <td><input type="number" class="item-total" value="${item.total}" readonly></td>
+                    <td><button class="delete-btn" onclick="deleteRow(this)">حذف</button></td>
+                `;
 
-        const invoiceItems = document.getElementById('invoiceItems');
-        invoiceItems.innerHTML = '';
-        invoice.items.forEach(item => {
-            const row = invoiceItems.insertRow();
-            row.innerHTML = `
-                <td>
-                    <div class="form-group" style="margin:0">
-                        <input type="text" class="item-name" value="${item.name}" required>
-                    </div>
-                </td>
-                <td><input type="number" class="item-price" value="${item.price}" onchange="calculateRowTotal(this)" required></td>
-                <td><input type="number" class="item-quantity" value="${item.quantity}" onchange="calculateRowTotal(this)" required></td>
-                <td><input type="number" class="item-total" value="${item.total}" readonly></td>
-                <td><button class="delete-btn" onclick="deleteRow(this)">حذف</button></td>
-            `;
-        });
-
-        document.getElementById('totalAmount').value = invoice.total;
-    }
+                // إضافة الاقتراحات للمنتج
+                setupAutoComplete(uniqueId, products, 'name', (product) => {
+                    if (product) {
+                        const priceInput = row.querySelector('.item-price');
+                        priceInput.value = product.sellPrice;
+                        calculateRowTotal(priceInput);
+                    }
+                });
+            });
+            
+            // تحديث الإجمالي
+            document.getElementById('totalAmount').value = invoice.total;
+        }
 
         function generateInvoiceNumber() {
             return `#${String(invoiceCounter).padStart(4, '0')}`;
