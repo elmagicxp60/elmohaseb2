@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>نظام المحاسبة البسيط</title>
+    
     <style>
         body {
             font-family: 'Segoe UI', 'Arial', sans-serif;
@@ -52,6 +53,10 @@
         }
         h1 {
             text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             color: white;
             margin-bottom: 40px;
             font-size: 28px;
@@ -721,9 +726,107 @@
 
 
 
-  
-  
-</style>
+
+
+/* أضف هذا الكود في قسم <style> */
+
+    .notifications-icon {
+    position: relative;
+    margin-right: 20px;
+    cursor: pointer;
+}
+
+.notifications-icon i {
+    color: white;
+    font-size: 24px;
+}
+
+.notifications-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #e74c3c;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.notifications-panel {
+    position: fixed;
+    top: 60px;
+    left: 20px;
+    width: 300px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    display: none;
+    z-index: 1000;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.notification-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.notification-item:last-child {
+    border-bottom: none;
+}
+
+.notification-content {
+    flex: 1;
+}
+
+.notification-title {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.notification-message {
+    color: #666;
+    font-size: 14px;
+}
+
+.notification-time {
+    color: #999;
+    font-size: 12px;
+}
+
+.notification-item.unread {
+    background: #f8f9fa;
+}
+
+.notification-item.unread::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: #3498db;
+    border-radius: 50%;
+    display: inline-block;
+    margin-left: 5px;
+}
+
+.edit-btn {
+    background: #f39c12;
+    margin: 0 2px;
+}
+
+.edit-btn:hover {
+    background: #d68910;
+}
+
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -823,10 +926,168 @@ window.onload = async function() {
             }
         };
     </script>
+    <script>
+    // دالة لتقسيم الصفحات
+    function paginateTable(tableId, data, rowsPerPage, currentPage) {
+        const tableBody = document.querySelector(`#${tableId} tbody`);
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        // عرض البيانات في الصفحة الحالية فقط
+        const pageData = data.slice(start, end);
+        tableBody.innerHTML = pageData.join('');
+
+        // تحديث أزرار التنقل
+        const paginationControls = document.querySelector(`#${tableId}-pagination`);
+        paginationControls.innerHTML = `
+            <button onclick="changePage('${tableId}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>السابق</button>
+            <span>صفحة ${currentPage} من ${totalPages}</span>
+            <button onclick="changePage('${tableId}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
+        `;
+    }
+
+    // دالة لتغيير الصفحة
+    function changePage(tableId, newPage) {
+        const tableData = window[`${tableId}Data`]; // البيانات المخزنة
+        const rowsPerPage = 15; // عدد الصفوف لكل صفحة
+        if (newPage > 0 && newPage <= Math.ceil(tableData.length / rowsPerPage)) {
+            paginateTable(tableId, tableData, rowsPerPage, newPage);
+        }
+    }
+
+    // تعديل دالة updateInvoicesTable
+    function updateInvoicesTable() {
+    const invoicesSection = document.getElementById('invoices');
+    
+    // إضافة مربع البحث وزر إنشاء فاتورة جديدة
+    if (!document.querySelector('.invoice-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'invoice-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="toggleInvoiceForm()">إنشاء فاتورة جديدة</button>
+            <div class="search-box">
+                <input type="text" id="invoiceSearch" placeholder="البحث برقم الفاتورة أو اسم العميل" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        // إضافة عناصر التحكم قبل الجدول
+        const titleElement = invoicesSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء أو تحديث جدول الفواتير
+    if (!document.getElementById('invoicesTable')) {
+        invoicesSection.innerHTML += `
+            <table id="invoicesTable" class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>رقم الفاتورة</th>
+                        <th>التاريخ</th>
+                        <th>اسم العميل</th>
+                        <th>الإجمالي</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        `;
+    }
+
+    // تحديث محتوى الجدول
+    const tbody = document.getElementById('invoicesTable').querySelector('tbody');
+    tbody.innerHTML = invoices.map((inv, index) => `
+        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
+            <td>${inv.number}</td>
+            <td>${inv.date}</td>
+            <td>${inv.customer}</td>
+            <td>${inv.total}</td>
+            <td>
+                <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
+                <button class="action-btn edit-btn" onclick="editInvoice(${index})">تعديل</button>
+                <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
+                <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
+                    ${inv.shipped ? 'تم الشحن' : 'شحن'}
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    // إضافة وظيفة البحث
+    setupInvoiceSearch();
+}
+
+    // التأكد من تحميل البيانات عند بدء التطبيق
+    document.addEventListener('DOMContentLoaded', () => {
+        updateInvoicesTable();
+    });
+    
+// تعديل دالة editInvoice
+function editInvoice(index) {
+    const invoice = invoices[index];
+    const modal = document.getElementById('invoiceModal');
+    
+    // تعيين مؤشر التعديل
+    modal.dataset.editIndex = index;
+    
+    // تعبئة البيانات في النموذج
+    document.getElementById('invoiceNumber').value = invoice.number;
+    document.getElementById('invoiceDate').value = invoice.date;
+    document.getElementById('customerName').value = invoice.customer;
+    document.getElementById('phone').value = invoice.phone || '';
+    document.getElementById('governorate').value = invoice.governorate || '';
+    document.getElementById('address').value = invoice.address || '';
+    
+    // تفريغ جدول المنتجات
+    const invoiceItems = document.getElementById('invoiceItems');
+    invoiceItems.innerHTML = '';
+    
+    // إضافة المنتجات
+    invoice.items.forEach(item => {
+        const row = invoiceItems.insertRow();
+        const uniqueId = 'item_' + Date.now() + Math.random();
+        
+        row.innerHTML = `
+            <td>
+                <div class="form-group" style="margin:0">
+                    <input type="text" class="item-name" id="${uniqueId}" value="${item.name}" required>
+                </div>
+            </td>
+            <td><input type="number" class="item-price" value="${item.price}" onchange="calculateRowTotal(this)" required></td>
+            <td><input type="number" class="item-quantity" value="${item.quantity}" onchange="calculateRowTotal(this)" required></td>
+            <td><input type="number" class="item-total" value="${item.total}" readonly></td>
+            <td><button class="delete-btn" onclick="deleteRow(this)">حذف</button></td>
+        `;
+
+        // إضافة الاقتراحات للمنتج
+        setupAutoComplete(uniqueId, products, 'name', (product) => {
+            if (product) {
+                const priceInput = row.querySelector('.item-price');
+                priceInput.value = product.sellPrice;
+                calculateRowTotal(priceInput);
+            }
+        });
+    });
+    
+    // تحديث الإجمالي
+    document.getElementById('totalAmount').value = invoice.total;
+    
+    // عرض النموذج
+    modal.style.display = 'block';
+}
+    </script>
 </head>
 <body>
     <div class="sidebar">
         <h1><i class="fas fa-calculator"></i> نظام المحاسبة</h1>
+
+        <!-- أضف هذا الكود بعد عنوان الموقع في الـ sidebar -->
+<div class="notifications-icon" onclick="toggleNotifications()">
+    <i class="fas fa-bell"></i>
+    <span class="notifications-count">0</span>
+</div>
         <button class="button" onclick="showSection('invoices')">
             <i class="fas fa-file-invoice"></i>
             الفواتير
@@ -881,8 +1142,15 @@ window.onload = async function() {
             <h2 class="section-title">قسم المنتجات</h2>
             <div id="productsList"></div>
         </div>
+
+
+
+
+                <!-- قسم العملاء -->
+
         <div id="clients" class="section-content">
             <h2 class="section-title">قسم العملاء</h2>
+            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
             <div id="clientsList"></div>
         </div>
 
@@ -1253,84 +1521,98 @@ window.onload = async function() {
         }
 
         function saveFullInvoice() {
-            const editIndex = document.getElementById('invoiceModal').dataset.editIndex;
-            const invoice = {
-                number: document.getElementById('invoiceNumber').value,
-                date: document.getElementById('invoiceDate').value,
-                customer: document.getElementById('customerName').value,
-                phone: document.getElementById('phone').value,
-                governorate: document.getElementById('governorate').value,
-                address: document.getElementById('address').value,
-                items: [...document.getElementById('invoiceItems').rows].map(row => ({
-                    name: row.querySelector('.item-name').value,
-                    price: row.querySelector('.item-price').value,
-                    quantity: row.querySelector('.item-quantity').value,
-                    total: row.querySelector('.item-total').value
-                })),
-                total: document.getElementById('totalAmount').value
-            };
+    // تجميع بيانات الفاتورة
+    const newInvoice = {
+        number: document.getElementById('invoiceNumber').value,
+        date: document.getElementById('invoiceDate').value,
+        customer: document.getElementById('customerName').value,
+        phone: document.getElementById('phone').value,
+        governorate: document.getElementById('governorate').value,
+        address: document.getElementById('address').value,
+        items: [...document.getElementById('invoiceItems').rows].map(row => ({
+            name: row.querySelector('.item-name').value,
+            price: Number(row.querySelector('.item-price').value),
+            quantity: Number(row.querySelector('.item-quantity').value),
+            total: Number(row.querySelector('.item-total').value)
+        })),
+        total: Number(document.getElementById('totalAmount').value)
+    };
 
-            if (editIndex) {
-                // تحديث الفاتورة الموجودة
-                invoice.shipped = invoices[editIndex].shipped; // الحفاظ على حالة الشحن
-                invoices[editIndex] = invoice;
-                document.getElementById('invoiceModal').dataset.editIndex = '';
-            } else {
-                // إضافة فاتورة جديدة
-                invoices.push(invoice);
-                invoiceCounter++;
-            }
+    const editIndex = parseInt(document.getElementById('invoiceModal').dataset.editIndex);
 
-            // حفظ في Firebase
-            firebaseHelper.saveData('invoices', invoices)
-                .then(() => {
-                    closeInvoiceModal();
-                    clearInvoiceForm();
-                    alert('تم حفظ الفاتورة بنجاح');
-                    updateInvoicesTable();
-                })
-                .catch(error => {
-                    console.error('خطأ في حفظ الفاتورة:', error);
-                    alert('حدث خطأ في حفظ الفاتورة');
-                });
-        }
+    if (!isNaN(editIndex)) {
+        // تحديث فاتورة موجودة
+        newInvoice.shipped = invoices[editIndex].shipped || false;
+        invoices[editIndex] = newInvoice;
+        document.getElementById('invoiceModal').removeAttribute('data-edit-index');
+    } else {
+        // إضافة فاتورة جديدة
+        invoices.push(newInvoice);
+        invoiceCounter++;
+    }
+
+    // حفظ في Firebase
+    firebaseHelper.saveData('invoices', invoices)
+        .then(() => {
+            closeInvoiceModal();
+            clearInvoiceForm();
+            addNotification(
+                'فاتورة جديدة',
+                `تم ${!isNaN(editIndex) ? 'تحديث' : 'إنشاء'} الفاتورة رقم ${newInvoice.number} بنجاح`,
+                'success'
+            );
+            updateInvoicesTable();
+        })
+        .catch(error => {
+            console.error('خطأ في حفظ الفاتورة:', error);
+            addNotification(
+                'خطأ',
+                'حدث خطأ أثناء حفظ الفاتورة',
+                'error'
+            );
+        });
+}
 
         function updateInvoicesTable() {
-            const invoicesSection = document.getElementById('invoices');
-            if (!document.getElementById('invoicesTable')) {
-                invoicesSection.innerHTML += `
-                    <table id="invoicesTable" class="invoice-table">
-                        <thead>
-                            <tr>
-                                <th>رقم الفاتورة</th>
-                                <th>التاريخ</th>
-                                <th>اسم العميل</th>
-                                <th>الإجمالي</th>
-                                <th>الإجراءات</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
-                `;
-            }
-
-            const tbody = document.getElementById('invoicesTable').querySelector('tbody');
-            tbody.innerHTML = invoices.map((inv, index) => `
-                <tr class="${inv.shipped ? 'shipped' : ''}">
-                    <td>${inv.number}</td>
-                    <td>${inv.date}</td>
-                    <td>${inv.customer}</td>
-                    <td>${inv.total}</td>
-                    <td>
-                        <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
-                        <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
-                        <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
-                            ${inv.shipped ? 'تم الشحن' : 'شحن'}
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+        const invoicesSection = document.getElementById('invoices');
+        if (!document.getElementById('invoicesTable')) {
+            invoicesSection.innerHTML += `
+                <table id="invoicesTable" class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>رقم الفاتورة</th>
+                            <th>التاريخ</th>
+                            <th>اسم العميل</th>
+                            <th>الإجمالي</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="invoicesTable-pagination" class="pagination-controls"></div>
+            `;
         }
+
+        // تخزين البيانات في متغير عالمي
+        window.invoicesTableData = invoices.map((inv, index) => `
+            <tr class="${inv.shipped ? 'shipped' : ''}">
+                <td>${inv.number}</td>
+                <td>${inv.date}</td>
+                <td>${inv.customer}</td>
+                <td>${inv.total}</td>
+                <td>
+                    <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
+                    <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
+                    <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
+                        ${inv.shipped ? 'تم الشحن' : 'شحن'}
+                    </button>
+                </td>
+            </tr>
+        `);
+
+        // عرض الصفحة الأولى
+        paginateTable('invoicesTable', window.invoicesTableData, 15, 1);
+    }
 
         function showInvoiceDetails(index) {
             const invoice = invoices[index];
@@ -1544,6 +1826,12 @@ window.onload = async function() {
             toggleInvoiceForm();
         }
 
+/*************  ✨ Codeium Command ⭐  *************/
+        /**
+         * Display the new product form modal and clear any existing values.
+         * This is used when the user clicks the "Add Product" button.
+         */
+/******  ef4f5623-1164-45ae-b4a7-de9af82a3999  *******/
         function showNewProductForm() {
             const modal = document.getElementById('productModal');
             modal.style.display = 'block';
@@ -1650,66 +1938,47 @@ window.onload = async function() {
         }
 
         function updateProductsList() {
-    const productsSection = document.getElementById('products');
-    
-    // إضافة مربع البحث وزر إضافة منتج جديد
-    if (!document.querySelector('.products-controls')) {
-        const controlsDiv = document.createElement('div');
-        controlsDiv.className = 'products-controls';
-        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-        controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
-            <div class="search-box">
-                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        `;
-        
-        // إضافة عناصر التحكم بعد العنوان
-        const titleElement = productsSection.querySelector('.section-title');
-        titleElement.insertAdjacentElement('afterend', controlsDiv);
+        const productsSection = document.getElementById('products');
+        if (!document.getElementById('productsTable')) {
+            productsSection.innerHTML += `
+                <table id="productsTable" class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>الصورة</th>
+                            <th>اسم المنتج</th>
+                            <th>سعر الشراء</th>
+                            <th>سعر البيع</th>
+                            <th>الكمية</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="productsTable-pagination" class="pagination-controls"></div>
+            `;
+        }
+
+        // تخزين البيانات في متغير عالمي
+        window.productsTableData = products.map(product => `
+            <tr>
+                <td>
+                    <img src="${product.image}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                         onclick="showProductImage('${product.image}')">
+                </td>
+                <td>${product.name}</td>
+                <td>${product.buyPrice}</td>
+                <td>${product.sellPrice}</td>
+                <td>${product.quantity}</td>
+                <td>
+                    <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
+                    <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
+                </td>
+            </tr>
+        `);
+
+        // عرض الصفحة الأولى
+        paginateTable('productsTable', window.productsTableData, 15, 1);
     }
-
-    // إنشاء جدول المنتجات
-    const productsList = document.getElementById('productsList');
-    productsList.innerHTML = `
-        <table id="productsTable" class="invoice-table">
-            <thead>
-                <tr>
-                    <th>الصورة</th>
-                    <th>اسم المنتج</th>
-                    <th>سعر الشراء</th>
-                    <th>سعر البيع</th>
-                    <th>الكمية</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${products.map(product => `
-                    <tr data-product-name="${product.name}">
-                        <td>
-                            <img src="${product.image}" 
-                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                 onclick="showProductImage('${product.image}')"
-                                 title="انقر لتكبير الصورة">
-                        </td>
-                        <td>${product.name}</td>
-                        <td>${product.buyPrice}</td>
-                        <td>${product.sellPrice}</td>
-                        <td>${product.quantity}</td>
-                        <td>
-                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
-                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-
-    // إضافة وظيفة البحث
-    setupProductSearch();
-}
 
         function deleteProduct(id) {
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
@@ -1810,59 +2079,42 @@ window.onload = async function() {
         }
 
         function updateClientsList() {
-    const clientsSection = document.getElementById('clients');
-    
-    // إضافة مربع البحث وزر إضافة عميل جديد
-    if (!document.querySelector('.clients-controls')) {
-        const controlsDiv = document.createElement('div');
-        controlsDiv.className = 'clients-controls';
-        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-        controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
-            <div class="search-box">
-                <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        `;
-        
-        // إضافة عناصر التحكم بعد العنوان
-        const titleElement = clientsSection.querySelector('.section-title');
-        titleElement.insertAdjacentElement('afterend', controlsDiv);
+        const clientsSection = document.getElementById('clients');
+        if (!document.getElementById('clientsTable')) {
+            clientsSection.innerHTML += `
+                <table id="clientsTable" class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th>اسم العميل</th>
+                            <th>المحافظة</th>
+                            <th>رقم الهاتف</th>
+                            <th>العنوان</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div id="clientsTable-pagination" class="pagination-controls"></div>
+            `;
+        }
+
+        // تخزين البيانات في متغير عالمي
+        window.clientsTableData = clients.map(client => `
+            <tr>
+                <td>${client.name}</td>
+                <td>${client.governorate}</td>
+                <td>${client.phone}</td>
+                <td>${client.address}</td>
+                <td>
+                    <button class="action-btn details-btn" onclick="editClient(${client.id})">تعديل</button>
+                    <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})">حذف</button>
+                </td>
+            </tr>
+        `);
+
+        // عرض الصفحة الأولى
+        paginateTable('clientsTable', window.clientsTableData, 15, 1);
     }
-
-    // إنشاء جدول العملاء
-    const clientsList = document.getElementById('clientsList');
-    clientsList.innerHTML = `
-        <table id="clientsTable" class="invoice-table">
-            <thead>
-                <tr>
-                    <th>اسم العميل</th>
-                    <th>المحافظة</th>
-                    <th>رقم الهاتف</th>
-                    <th>العنوان</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${clients.map(client => `
-                    <tr data-client-name="${client.name}" data-client-phone="${client.phone}">
-                        <td>${client.name}</td>
-                        <td>${client.governorate}</td>
-                        <td>${client.phone}</td>
-                        <td>${client.address}</td>
-                        <td>
-                            <button class="action-btn details-btn" onclick="editClient(${client.id})">تعديل</button>
-                            <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})">حذف</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-
-    // إضافة وظيفة البحث
-    setupClientSearch();
-}
 
         function deleteClient(id) {
             if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
@@ -2181,6 +2433,7 @@ function updateInvoicesTable() {
             <td>${inv.total}</td>
             <td>
                 <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
+                <button class="action-btn edit-btn" onclick="editInvoice(${index})">تعديل</button>
                 <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
                 <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
                     ${inv.shipped ? 'تم الشحن' : 'شحن'}
@@ -2467,11 +2720,200 @@ function setupClientSearch() {
     });
 }
 
+    // دالة لتقسيم الصفحات
+    function paginateTable(tableId, data, rowsPerPage, currentPage) {
+        const tableBody = document.querySelector(`#${tableId} tbody`);
+        const totalPages = Math.ceil(data.length / rowsPerPage);
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        // عرض البيانات في الصفحة الحالية
+        tableBody.innerHTML = data.slice(start, end).map(row => row).join('');
+
+        // تحديث أزرار التنقل
+        const paginationControls = document.querySelector(`#${tableId}-pagination`);
+        paginationControls.innerHTML = `
+            <button onclick="changePage('${tableId}', ${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>السابق</button>
+            <span>صفحة ${currentPage} من ${totalPages}</span>
+            <button onclick="changePage('${tableId}', ${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
+        `;
+    }
+
+    // دالة لتغيير الصفحة
+    function changePage(tableId, newPage) {
+        const tableData = window[`${tableId}Data`]; // البيانات المخزنة
+        const rowsPerPage = 15; // عدد الصفوف لكل صفحة
+        paginateTable(tableId, tableData, rowsPerPage, newPage);
+    }
 
 
 
 
 
+    // أضف هذا الكود في نهاية ملف JavaScript
+
+let notifications = [];
+let unreadCount = 0;
+
+function addNotification(title, message, type = 'info') {
+    const notification = {
+        id: Date.now(),
+        title,
+        message,
+        type,
+        time: new Date(),
+        read: false
+    };
+    
+    notifications.unshift(notification);
+    unreadCount++;
+    updateNotificationsCount();
+    updateNotificationsList();
+    
+    // حفظ الإشعارات في Firebase
+    firebaseHelper.saveData('notifications', notifications);
+}
+
+function toggleNotifications() {
+    const panel = document.querySelector('.notifications-panel');
+    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function updateNotificationsCount() {
+    document.querySelector('.notifications-count').textContent = unreadCount;
+}
+
+function updateNotificationsList() {
+    const list = document.getElementById('notificationsList');
+    list.innerHTML = notifications.map(notification => `
+        <div class="notification-item ${notification.read ? '' : 'unread'}" 
+             onclick="markAsRead(${notification.id})">
+            <div class="notification-content">
+                <div class="notification-title">${notification.title}</div>
+                <div class="notification-message">${notification.message}</div>
+                <div class="notification-time">
+                    ${new Date(notification.time).toLocaleString('ar-EG')}
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function markAsRead(id) {
+    const notification = notifications.find(n => n.id === id);
+    if (notification && !notification.read) {
+        notification.read = true;
+        unreadCount = Math.max(0, unreadCount - 1);
+        updateNotificationsCount();
+        updateNotificationsList();
+        
+        // حفظ التغييرات في Firebase
+        firebaseHelper.saveData('notifications', notifications);
+    }
+}
+
+// إضافة مراقب للإشعارات في Firebase
+function initNotifications() {
+    firebase.database().ref('notifications').on('value', (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            notifications = data;
+            unreadCount = notifications.filter(n => !n.read).length;
+            updateNotificationsCount();
+            updateNotificationsList();
+        }
+    });
+}
+
+// تعديل دالة saveProduct لإضافة إشعار
+function saveProduct() {
+    // ... الكود الحالي ...
+    
+    firebaseHelper.saveData('products', products)
+        .then(() => {
+            updateProductsList();
+            clearProductForm();
+            closeProductModal();
+            
+            // إضافة إشعار
+            addNotification(
+                'منتج جديد',
+                `تم إضافة المنتج "${productName}" بنجاح`,
+                'success'
+            );
+        })
+        .catch(error => {
+            console.error('خطأ في حفظ المنتج:', error);
+            addNotification(
+                'خطأ',
+                'حدث خطأ أثناء حفظ المنتج',
+                'error'
+            );
+        });
+}
+
+// تعديل دالة saveFullInvoice لإضافة إشعار
+function saveFullInvoice() {
+    // تجميع بيانات الفاتورة
+    const newInvoice = {
+        number: document.getElementById('invoiceNumber').value,
+        date: document.getElementById('invoiceDate').value,
+        customer: document.getElementById('customerName').value,
+        phone: document.getElementById('phone').value,
+        governorate: document.getElementById('governorate').value,
+        address: document.getElementById('address').value,
+        items: [...document.getElementById('invoiceItems').rows].map(row => ({
+            name: row.querySelector('.item-name').value,
+            price: Number(row.querySelector('.item-price').value),
+            quantity: Number(row.querySelector('.item-quantity').value),
+            total: Number(row.querySelector('.item-total').value)
+        })),
+        total: Number(document.getElementById('totalAmount').value)
+    };
+
+    const editIndex = parseInt(document.getElementById('invoiceModal').dataset.editIndex);
+
+    if (!isNaN(editIndex)) {
+        // تحديث فاتورة موجودة
+        newInvoice.shipped = invoices[editIndex].shipped || false;
+        invoices[editIndex] = newInvoice;
+        document.getElementById('invoiceModal').removeAttribute('data-edit-index');
+    } else {
+        // إضافة فاتورة جديدة
+        invoices.push(newInvoice);
+        invoiceCounter++;
+    }
+
+    // حفظ في Firebase
+    firebaseHelper.saveData('invoices', invoices)
+        .then(() => {
+            closeInvoiceModal();
+            clearInvoiceForm();
+            addNotification(
+                'فاتورة جديدة',
+                `تم ${!isNaN(editIndex) ? 'تحديث' : 'إنشاء'} الفاتورة رقم ${newInvoice.number} بنجاح`,
+                'success'
+            );
+            updateInvoicesTable();
+        })
+        .catch(error => {
+            console.error('خطأ في حفظ الفاتورة:', error);
+            addNotification(
+                'خطأ',
+                'حدث خطأ أثناء حفظ الفاتورة',
+                'error'
+            );
+        });
+}
+
+// إضافة استدعاء initNotifications عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    showSection('invoices');
+    initNotifications();
+});
     </script>
+    <div class="notifications-panel">
+        <div id="notificationsList"></div>
+    </div>
 </body>
 </html>
