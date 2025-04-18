@@ -1764,7 +1764,7 @@ function editInvoice(index) {
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
-                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة</p>
+                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة 🌹</p>
                         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                             <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
                                 تعديل الفاتورة
@@ -2057,67 +2057,7 @@ function editInvoice(index) {
             modal.style.display = 'block';
         }
 
-        function updateProductsList() {
-    const productsSection = document.getElementById('products');
-    
-    // إضافة زر إضافة منتج جديد إذا لم يكن موجوداً
-    if (!document.querySelector('.products-controls')) {
-        const controlsDiv = document.createElement('div');
-        controlsDiv.className = 'products-controls';
-        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-        controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
-            <div class="search-box">
-                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        `;
-        
-        const titleElement = productsSection.querySelector('.section-title');
-        titleElement.insertAdjacentElement('afterend', controlsDiv);
-    }
-
-    // تحديث جدول المنتجات
-    const productsList = document.getElementById('productsList');
-    productsList.innerHTML = `
-        <table id="productsTable" class="invoice-table">
-            <thead>
-                <tr>
-                    <th>الصورة</th>
-                    <th>اسم المنتج</th>
-                    <th>سعر الشراء</th>
-                    <th>سعر البيع</th>
-                    <th>الكمية</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${products.map(product => `
-                    <tr data-product-name="${product.name}">
-                        <td>
-                            <img src="${product.image}" 
-                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                 onclick="showProductImage('${product.image}')"
-                                 title="انقر لتكبير الصورة">
-                        </td>
-                        <td>${product.name}</td>
-                        <td>${product.buyPrice}</td>
-                        <td>${product.sellPrice}</td>
-                        <td>${product.quantity}</td>
-                        <td>
-                            <button class="action-btn details-btn" onclick="editProduct(${product.id})" title="تعديل">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})" title="حذف">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-}
+       
 
         function deleteProduct(id) {
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
@@ -2656,6 +2596,7 @@ function updatePaginationControls(currentPage, totalPages) {
 
 
 // تعديل دالة updateProductsList لإضافة مربع البحث
+
 function updateProductsList() {
     const productsSection = document.getElementById('products');
     
@@ -2672,12 +2613,11 @@ function updateProductsList() {
             </div>
         `;
         
-        // إضافة عناصر التحكم بعد العنوان
         const titleElement = productsSection.querySelector('.section-title');
         titleElement.insertAdjacentElement('afterend', controlsDiv);
     }
 
-    // إنشاء جدول المنتجات
+    // إنشاء جدول المنتجات وعناصر التنقل
     const productsList = document.getElementById('productsList');
     productsList.innerHTML = `
         <table id="productsTable" class="invoice-table">
@@ -2691,32 +2631,69 @@ function updateProductsList() {
                     <th>الإجراءات</th>
                 </tr>
             </thead>
-            <tbody>
-                ${products.map(product => `
-                    <tr data-product-name="${product.name}">
-                        <td>
-                            <img src="${product.image}" 
-                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                 onclick="showProductImage('${product.image}')"
-                                 title="انقر لتكبير الصورة">
-                        </td>
-                        <td>${product.name}</td>
-                        <td>${product.buyPrice}</td>
-                        <td>${product.sellPrice}</td>
-                        <td>${product.quantity}</td>
-                        <td>
-                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
-                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
+            <tbody></tbody>
         </table>
+        <div id="productsPagination"></div>
     `;
 
+    // عرض الصفحة الأولى من المنتجات
+    paginateProducts(1);
+    
     // إضافة وظيفة البحث
     setupProductSearch();
 }
+
+function paginateProducts(pageNumber) {
+    const productsPerPage = 10;
+    const tbody = document.getElementById('productsTable').querySelector('tbody');
+    const totalPages = Math.ceil(products.length / productsPerPage);
+    const start = (pageNumber - 1) * productsPerPage;
+    const end = start + productsPerPage;
+    
+    // عرض المنتجات للصفحة الحالية
+    tbody.innerHTML = products.slice(start, end).map(product => `
+        <tr data-product-name="${product.name}">
+            <td>
+                <img src="${product.image}" 
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
+                     onclick="showProductImage('${product.image}')"
+                     title="انقر لتكبير الصورة">
+            </td>
+            <td>${product.name}</td>
+            <td>${product.buyPrice}</td>
+            <td>${product.sellPrice}</td>
+            <td>${product.quantity}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="editProduct('${product.id}')" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-invoice-btn" onclick="deleteProduct('${product.id}')" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    // تحديث أزرار التنقل
+    updateProductsPaginationControls(pageNumber, totalPages);
+}
+
+function updateProductsPaginationControls(currentPage, totalPages) {
+    const paginationDiv = document.getElementById('productsPagination');
+    if (!paginationDiv) return;
+
+    paginationDiv.innerHTML = `
+        <button onclick="paginateProducts(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>السابق</button>
+        <span>صفحة ${currentPage} من ${totalPages}</span>
+        <button onclick="paginateProducts(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
+    `;
+}
+
+
+
+
+
+
 
 // دالة البحث في المنتجات
 function setupProductSearch() {
@@ -2742,68 +2719,7 @@ function setupProductSearch() {
 
 
 
-// تعديل دالة updateProductsList لإضافة مربع البحث
-function updateProductsList() {
-    const productsSection = document.getElementById('products');
-    
-    // إضافة مربع البحث وزر إضافة منتج جديد
-    if (!document.querySelector('.products-controls')) {
-        const controlsDiv = document.createElement('div');
-        controlsDiv.className = 'products-controls';
-        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-        controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewProductForm()">إضافة منتج جديد</button>
-            <div class="search-box">
-                <input type="text" id="productSearch" placeholder="البحث باسم المنتج" class="search-input">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        `;
-        
-        // إضافة عناصر التحكم بعد العنوان
-        const titleElement = productsSection.querySelector('.section-title');
-        titleElement.insertAdjacentElement('afterend', controlsDiv);
-    }
 
-    // إنشاء جدول المنتجات
-    const productsList = document.getElementById('productsList');
-    productsList.innerHTML = `
-        <table id="productsTable" class="invoice-table">
-            <thead>
-                <tr>
-                    <th>الصورة</th>
-                    <th>اسم المنتج</th>
-                    <th>سعر الشراء</th>
-                    <th>سعر البيع</th>
-                    <th>الكمية</th>
-                    <th>الإجراءات</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${products.map(product => `
-                    <tr data-product-name="${product.name}">
-                        <td>
-                            <img src="${product.image}" 
-                                 style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                                 onclick="showProductImage('${product.image}')"
-                                 title="انقر لتكبير الصورة">
-                        </td>
-                        <td>${product.name}</td>
-                        <td>${product.buyPrice}</td>
-                        <td>${product.sellPrice}</td>
-                        <td>${product.quantity}</td>
-                        <td>
-                            <button class="action-btn details-btn" onclick="editProduct(${product.id})">تعديل</button>
-                            <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})">حذف</button>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
-
-    // إضافة وظيفة البحث
-    setupProductSearch();
-}
 
 // دالة البحث في المنتجات
 function setupProductSearch() {
