@@ -1185,8 +1185,10 @@ function editInvoice(index) {
 </head>
 <body>
     <div class="sidebar">
-        <h1><i class="fas fa-calculator"></i> FARFASHA SYSTEM</h1>
-
+        <h1 style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+            <img src="images/logo.png" alt="Farfasha Logo" style="height: 100px;">
+          </h1>
+          
         <!-- أضف هذا الكود بعد عنوان الموقع في الـ sidebar -->
 <div class="notifications-icon" onclick="toggleNotifications()">
     <i class="fas fa-bell"></i>
@@ -1766,7 +1768,7 @@ function editInvoice(index) {
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
-                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة 🌹</p>
+                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة</p>
                         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                             <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
                                 تعديل الفاتورة
@@ -1803,6 +1805,13 @@ function editInvoice(index) {
             printWindow.document.write('</body></html>');
             printWindow.document.close();
             printWindow.print();
+
+
+            // انتظر تحميل الصورة قبل الطباعة
+    const logoImg = printWindow.document.querySelector('.receipt-header img');
+    logoImg.onload = function() {
+        printWindow.print();
+    };
         }
 
         function deleteInvoice(index) {
@@ -2351,30 +2360,48 @@ function shareViaWhatsApp() {
         }
 
         function shareOnWhatsApp(index) {
-            const invoice = invoices[index];
-            const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
-            
-            // إخفاء الأزرار قبل التحويل إلى صورة
-            const actionButtons = receiptElement.querySelector('.receipt-footer div');
-            if (actionButtons) {
-                actionButtons.style.display = 'none';
-            }
+    const invoice = invoices[index];
+    const receiptElement = document.querySelector('.receipt-style').cloneNode(true);
+    
+    // إخفاء الأزرار
+    const actionButtons = receiptElement.querySelector('.receipt-footer div');
+    if (actionButtons) {
+        actionButtons.style.display = 'none';
+    }
 
-            // إضافة الريسيت مؤقتاً للصفحة لتحويله إلى صورة
-            receiptElement.style.position = 'fixed';
-            receiptElement.style.left = '-9999px';
-            document.body.appendChild(receiptElement);
+    // إضافة الريسيت مؤقتاً للصفحة
+    receiptElement.style.position = 'fixed';
+    receiptElement.style.left = '-9999px';
+    document.body.appendChild(receiptElement);
 
+    // التأكد من تحميل الصورة قبل التحويل
+    const logoImg = receiptElement.querySelector('.receipt-header img');
+    
+    // وعد لتحميل الصورة
+    const loadImage = new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            logoImg.src = img.src;
+            resolve();
+        };
+        img.src = "https://i.postimg.cc/43cfrD4g/logo.jpg";
+    });
+
+    // انتظار تحميل الصورة ثم تحويل الريسيت إلى صورة
+    loadImage.then(() => {
+        setTimeout(() => { // إضافة تأخير صغير للتأكد من تطبيق كل التغييرات
             html2canvas(receiptElement, {
                 scale: 2,
                 backgroundColor: '#ffffff',
-                logging: false
+                logging: false,
+                useCORS: true, // السماح بتحميل الصور من مصادر خارجية
+                allowTaint: true // السماح بتحميل الصور من مصادر خارجية
             }).then(canvas => {
                 // إزالة العنصر المؤقت
                 document.body.removeChild(receiptElement);
                 
-                // تحويل الصورة إلى Base64
-                const image = canvas.toDataURL('image/jpeg', 0.8);
+                // تحويل الصورة إلى Base64 بجودة عالية
+                const image = canvas.toDataURL('image/jpeg', 1.0);
                 
                 // تحميل الصورة للجهاز
                 const downloadLink = document.createElement('a');
@@ -2383,11 +2410,13 @@ function shareViaWhatsApp() {
                 downloadLink.click();
 
                 // مشاركة عبر واتساب
-                const phoneNumber = invoice.phone.replace(/\D/g, ''); // إزالة كل ما ليس رقماً
+                const phoneNumber = invoice.phone.replace(/\D/g, '');
                 const whatsappURL = `https://wa.me/${phoneNumber}`;
                 window.open(whatsappURL);
             });
-        }
+        }, 500);
+    });
+}
 
         // تحميل البيانات عند بدء التطبيق
         document.addEventListener('DOMContentLoaded', () => {
