@@ -1768,7 +1768,7 @@ function editInvoice(index) {
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
-                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة 🌹</p>
+                        <p>نتمنى لكم تجربة تسوق سعيدة مع فرفشة</p>
                         <div style="display: flex; justify-content: center; gap: 10px; margin-top: 15px;">
                             <button class="new-invoice-btn" onclick="editInvoice(${index})" style="background: #3498db;">
                                 تعديل الفاتورة
@@ -2071,19 +2071,36 @@ function editInvoice(index) {
        
 
         function deleteProduct(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-                products = products.filter(p => p.id !== id);
-                
-                // حفظ في Firebase
-                firebaseHelper.saveData('products', products)
-                    .then(() => {
-                        updateProductsList();
-                    })
-                    .catch(error => {
-                        console.error('خطأ في حذف المنتج:', error);
-                    });
-            }
-        }
+    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+        // تحويل المعرف إلى رقم للمقارنة
+        const productId = parseInt(id);
+        
+        // فلترة المنتجات لحذف المنتج المحدد
+        products = products.filter(p => p.id !== productId);
+        
+        // حفظ في Firebase
+        firebaseHelper.saveData('products', products)
+            .then(() => {
+                // تحديث قائمة المنتجات
+                updateProductsList();
+                // إضافة إشعار نجاح
+                addNotification(
+                    'حذف منتج',
+                    'تم حذف المنتج بنجاح',
+                    'success'
+                );
+            })
+            .catch(error => {
+                console.error('خطأ في حذف المنتج:', error);
+                // إضافة إشعار خطأ
+                addNotification(
+                    'خطأ',
+                    'حدث خطأ أثناء حذف المنتج',
+                    'error'
+                );
+            });
+    }
+}
 
         function editProduct(id) {
             const product = products.find(p => p.id === id);
@@ -2681,7 +2698,6 @@ function paginateProducts(pageNumber) {
     const start = (pageNumber - 1) * productsPerPage;
     const end = start + productsPerPage;
     
-    // عرض المنتجات للصفحة الحالية
     tbody.innerHTML = products.slice(start, end).map(product => `
         <tr data-product-name="${product.name}">
             <td>
@@ -2695,17 +2711,16 @@ function paginateProducts(pageNumber) {
             <td>${product.sellPrice}</td>
             <td>${product.quantity}</td>
             <td>
-                <button class="action-btn edit-btn" onclick="editProduct('${product.id}')" title="تعديل">
+                <button class="action-btn edit-btn" onclick="editProduct(${product.id})" title="تعديل">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-invoice-btn" onclick="deleteProduct('${product.id}')" title="حذف">
+                <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})" title="حذف">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
         </tr>
     `).join('');
 
-    // تحديث أزرار التنقل
     updateProductsPaginationControls(pageNumber, totalPages);
 }
 
