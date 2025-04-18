@@ -6,6 +6,61 @@
     <title>نظام المحاسبة البسيط</title>
     
     <style>
+
+        /* أنماط أزرار التنقل بين الصفحات */
+#invoicesPagination,
+#clientsPagination,
+#productsPagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#invoicesPagination button,
+#clientsPagination button,
+#productsPagination button {
+    padding: 8px 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#invoicesPagination button:hover,
+#clientsPagination button:hover,
+#productsPagination button:hover {
+    background: #2980b9;
+}
+
+#invoicesPagination button:disabled,
+#clientsPagination button:disabled,
+#productsPagination button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
+
+#invoicesPagination span,
+#clientsPagination span,
+#productsPagination span {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+
+
+
+
+
+
+
+
+
+
+
         body {
             font-family: 'Segoe UI', 'Arial', sans-serif;
             margin: 0;
@@ -825,6 +880,49 @@
 .edit-btn:hover {
     background: #d68910;
 }
+
+
+
+
+
+/* أنماط أزرار التنقل بين الصفحات */
+#invoicesPagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+#invoicesPagination button {
+    padding: 8px 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+#invoicesPagination button:hover {
+    background: #2980b9;
+}
+
+#invoicesPagination button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
+
+#invoicesPagination span {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+
+
+
+
+
 
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -2425,7 +2523,7 @@ function updateShipmentStatus(index, status) {
 }
 
  // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
-function updateInvoicesTable() {
+ function updateInvoicesTable() {
     const invoicesSection = document.getElementById('invoices');
     
     // إضافة مربع البحث وزر إنشاء فاتورة جديدة
@@ -2441,12 +2539,11 @@ function updateInvoicesTable() {
             </div>
         `;
         
-        // إضافة عناصر التحكم قبل الجدول
         const titleElement = invoicesSection.querySelector('.section-title');
         titleElement.insertAdjacentElement('afterend', controlsDiv);
     }
 
-    // إنشاء أو تحديث جدول الفواتير
+    // إنشاء جدول الفواتير وعناصر التنقل
     if (!document.getElementById('invoicesTable')) {
         invoicesSection.innerHTML += `
             <table id="invoicesTable" class="invoice-table">
@@ -2461,37 +2558,20 @@ function updateInvoicesTable() {
                 </thead>
                 <tbody></tbody>
             </table>
+            <div id="invoicesPagination" style="margin-top: 20px; text-align: center;"></div>
         `;
     }
 
-    // تحديث محتوى الجدول
-    const tbody = document.getElementById('invoicesTable').querySelector('tbody');
-    tbody.innerHTML = invoices.map((inv, index) => `
-        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
-            <td>${inv.number}</td>
-            <td>${inv.date}</td>
-            <td>${inv.customer}</td>
-            <td>${inv.total}</td>
-            <td>
-                <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})" title="عرض التفاصيل">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn edit-btn" onclick="editInvoice(${index})" title="تعديل">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})" title="حذف">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''} title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
-                    <i class="fas fa-truck${inv.shipped ? '-loading' : ''}"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-
+    // عرض الصفحة الأولى من الفواتير
+    paginateInvoices(1);
+    
     // إضافة وظيفة البحث
     setupInvoiceSearch();
 }
+
+
+
+
 
 // دالة البحث المحسنة
 function setupInvoiceSearch() {
@@ -2514,6 +2594,63 @@ function setupInvoiceSearch() {
         });
     });
 }
+
+
+
+
+
+
+
+
+// دالة لتقسيم الصفحات
+function paginateInvoices(pageNumber) {
+    const invoicesPerPage = 10;
+    const tbody = document.getElementById('invoicesTable').querySelector('tbody');
+    const totalPages = Math.ceil(invoices.length / invoicesPerPage);
+    const start = (pageNumber - 1) * invoicesPerPage;
+    const end = start + invoicesPerPage;
+    
+    // عرض الفواتير للصفحة الحالية
+    tbody.innerHTML = invoices.slice(start, end).map((inv, index) => `
+        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
+            <td>${inv.number}</td>
+            <td>${inv.date}</td>
+            <td>${inv.customer}</td>
+            <td>${inv.total}</td>
+            <td>
+                <button class="action-btn details-btn" onclick="showInvoiceDetails(${start + index})" title="عرض التفاصيل">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="action-btn edit-btn" onclick="editInvoice(${start + index})" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${start + index})" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button class="action-btn ship-btn" onclick="shipInvoice(${start + index})" ${inv.shipped ? 'disabled' : ''} title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
+                    <i class="fas fa-truck${inv.shipped ? '-loading' : ''}"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    // تحديث أزرار التنقل
+    updatePaginationControls(pageNumber, totalPages);
+}
+
+// دالة لتحديث أزرار التنقل
+function updatePaginationControls(currentPage, totalPages) {
+    const paginationDiv = document.getElementById('invoicesPagination');
+    paginationDiv.innerHTML = `
+        <button onclick="paginateInvoices(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>السابق</button>
+        <span>صفحة ${currentPage} من ${totalPages}</span>
+        <button onclick="paginateInvoices(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
+    `;
+}
+
+
+
+
 
 
 
@@ -3024,6 +3161,94 @@ function compressImage(imageDataUrl, maxWidth = 800) {
             resolve(canvas.toDataURL('image/jpeg', 0.7));
         };
     });
+}
+
+// بعد دالة updateProductsPaginationControls مباشرة
+
+function updateClientsList() {
+    const clientsSection = document.getElementById('clients');
+    
+    // إضافة مربع البحث وزر إضافة عميل جديد
+    if (!document.querySelector('.clients-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'clients-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
+            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <div class="search-box">
+                <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+        `;
+        
+        const titleElement = clientsSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
+
+    // إنشاء جدول العملاء وعناصر التنقل
+    if (!document.getElementById('clientsTable')) {
+        clientsSection.innerHTML += `
+            <table id="clientsTable" class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>اسم العميل</th>
+                        <th>المحافظة</th>
+                        <th>رقم الهاتف</th>
+                        <th>العنوان</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <div id="clientsPagination" style="margin-top: 20px; text-align: center;"></div>
+        `;
+    }
+
+    // عرض الصفحة الأولى من العملاء
+    paginateClients(1);
+    
+    // إضافة وظيفة البحث
+    setupClientSearch();
+}
+
+// دالة لتقسيم صفحات العملاء
+function paginateClients(pageNumber) {
+    const clientsPerPage = 10;
+    const tbody = document.getElementById('clientsTable').querySelector('tbody');
+    const totalPages = Math.ceil(clients.length / clientsPerPage);
+    const start = (pageNumber - 1) * clientsPerPage;
+    const end = start + clientsPerPage;
+    
+    // عرض العملاء للصفحة الحالية
+    tbody.innerHTML = clients.slice(start, end).map(client => `
+        <tr data-client-name="${client.name}" data-client-phone="${client.phone}">
+            <td>${client.name}</td>
+            <td>${client.governorate}</td>
+            <td>${client.phone}</td>
+            <td>${client.address}</td>
+            <td>
+                <button class="action-btn edit-btn" onclick="editClient(${client.id})" title="تعديل">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="action-btn delete-invoice-btn" onclick="deleteClient(${client.id})" title="حذف">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+
+    // تحديث أزرار التنقل
+    updateClientsPaginationControls(pageNumber, totalPages);
+}
+
+// دالة لتحديث أزرار التنقل للعملاء
+function updateClientsPaginationControls(currentPage, totalPages) {
+    const paginationDiv = document.getElementById('clientsPagination');
+    paginationDiv.innerHTML = `
+        <button onclick="paginateClients(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>السابق</button>
+        <span>صفحة ${currentPage} من ${totalPages}</span>
+        <button onclick="paginateClients(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
+    `;
 }
     </script>
     <div class="notifications-panel">
