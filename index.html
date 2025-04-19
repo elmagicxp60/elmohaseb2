@@ -8,52 +8,37 @@
 
     <style>
         /* أنماط أزرار التنقل بين الصفحات */
-        #invoicesPagination,
-        #clientsPagination,
-        #productsPagination,
-        #shipmentsPagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 15px;
-            margin-top: 20px;
-        }
+       .pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+}
 
-        #invoicesPagination button,
-        #clientsPagination button,
-        #productsPagination button,
-        #shipmentsPagination button {
-            padding: 8px 15px;
-            background: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+.pagination-controls button {
+    padding: 8px 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
 
-        #invoicesPagination button:hover,
-        #clientsPagination button:hover,
-        #productsPagination button:hover,
-        #shipmentsPagination button:hover {
-            background: #2980b9;
-        }
+.pagination-controls button:hover {
+    background: #2980b9;
+}
 
-        #invoicesPagination button:disabled,
-        #clientsPagination button:disabled,
-        #productsPagination button:disabled,
-        #shipmentsPagination button:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-        }
+.pagination-controls button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
 
-        #invoicesPagination span,
-        #clientsPagination span,
-        #productsPagination span,
-        #shipmentsPagination span {
-            color: #2c3e50;
-            font-weight: bold;
-        }
+.pagination-controls span {
+    color: #2c3e50;
+    font-weight: bold;
+}
 
 
 
