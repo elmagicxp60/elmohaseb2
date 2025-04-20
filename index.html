@@ -7,38 +7,37 @@
     <title>نظام المحاسبة البسيط</title>
 
     <style>
-        /* أنماط أزرار التنقل بين الصفحات */
-       .pagination-controls {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-top: 20px;
-}
+        .pagination-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
 
-.pagination-controls button {
-    padding: 8px 15px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
+        .pagination-controls button {
+            padding: 8px 15px;
+            background: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
 
-.pagination-controls button:hover {
-    background: #2980b9;
-}
+        .pagination-controls button:hover {
+            background: #2980b9;
+        }
 
-.pagination-controls button:disabled {
-    background: #bdc3c7;
-    cursor: not-allowed;
-}
+        .pagination-controls button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
 
-.pagination-controls span {
-    color: #2c3e50;
-    font-weight: bold;
-}
+        .pagination-controls span {
+            color: #2c3e50;
+            font-weight: bold;
+        }
 
 
 
@@ -1026,7 +1025,8 @@
             }
 
             50% {
-                background-color: rgba(202, 211, 12, 0.3); /* لون #cad30c مع شفافية */
+                background-color: rgba(202, 211, 12, 0.3);
+                /* لون #cad30c مع شفافية */
             }
 
             100% {
@@ -1037,6 +1037,61 @@
         .highlight-row {
             animation: highlight 2s ease-in-out 3;
         }
+
+
+
+        
+
+
+
+        .status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    margin-right: 5px;
+    min-width: 80px;
+    text-align: center;
+}
+
+.status-pending {
+    background-color: #f1c40f;
+    color: white;
+    border: 1px solid #f39c12;
+}
+
+.status-delivered {
+    background-color: #2ecc71;
+    color: white;
+    border: 1px solid #27ae60;
+}
+
+.status-cancelled {
+    background-color: #e74c3c;
+    color: white;
+    border: 1px solid #c0392b;
+}
+
+.status-returned {
+    background-color: #e67e22;
+    color: white;
+    border: 1px solid #d35400;
+}
+
+.status-paid {
+    background-color: #3498db;
+    color: white;
+    border: 1px solid #2980b9;
+}
+
+/* تأثير الحركة عند المرور بالمؤشر */
+.status-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
 
 
 
@@ -1173,73 +1228,7 @@
         }
 
         // تعديل دالة updateInvoicesTable
-        function updateInvoicesTable() {
-            const invoicesSection = document.getElementById('invoices');
-
-            // إضافة مربع البحث وزر إنشاء فاتورة جديدة
-            if (!document.querySelector('.invoice-controls')) {
-                const controlsDiv = document.createElement('div');
-                controlsDiv.className = 'invoice-controls';
-                controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-                controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="toggleInvoiceForm()">إنشاء فاتورة جديدة</button>
-            <div class="search-box">
-                <input type="text" id="invoiceSearch" placeholder="البحث برقم الفاتورة أو اسم العميل" class="search-input">
-                <i class="fas fa-search search-icon"></i>
-            </div>
-        `;
-
-                // إضافة عناصر التحكم قبل الجدول
-                const titleElement = invoicesSection.querySelector('.section-title');
-                titleElement.insertAdjacentElement('afterend', controlsDiv);
-            }
-
-            // إنشاء أو تحديث جدول الفواتير
-            if (!document.getElementById('invoicesTable')) {
-                invoicesSection.innerHTML += `
-            <table id="invoicesTable" class="invoice-table">
-                <thead>
-                    <tr>
-                        <th>رقم الفاتورة</th>
-                        <th>التاريخ</th>
-                        <th>اسم العميل</th>
-                        <th>الإجمالي</th>
-                        <th>الإجراءات</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-        `;
-            }
-
-            // تحديث محتوى الجدول
-            const tbody = document.getElementById('invoicesTable').querySelector('tbody');
-            tbody.innerHTML = invoices.map((inv, index) => `
-        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
-            <td>${inv.number}</td>
-            <td>${inv.date}</td>
-            <td>${inv.customer}</td>
-            <td>${inv.total}</td>
-            <td>
-                <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})" title="عرض التفاصيل">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn edit-btn" onclick="editInvoice(${index})" title="تعديل">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})" title="حذف">
-                    <i class="fas fa-trash"></i>
-                </button>
-                <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''} title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
-                    <i class="fas fa-truck${inv.shipped ? '-loading' : ''}"></i>
-                </button>
-            </td>
-        </tr>
-    `).join('');
-
-            // إضافة وظيفة البحث
-            setupInvoiceSearch();
-        }
+       
 
         // التأكد من تحميل البيانات عند بدء التطبيق
         document.addEventListener('DOMContentLoaded', () => {
@@ -1814,47 +1803,17 @@
 
 
 
-        function updateInvoicesTable() {
-            const invoicesSection = document.getElementById('invoices');
-            if (!document.getElementById('invoicesTable')) {
-                invoicesSection.innerHTML += `
-                <table id="invoicesTable" class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>رقم الفاتورة</th>
-                            <th>التاريخ</th>
-                            <th>اسم العميل</th>
-                            <th>الإجمالي</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-                <div id="invoicesTable-pagination" class="pagination-controls"></div>
-            `;
-            }
+        
 
-            // تخزين البيانات في متغير عالمي
-            window.invoicesTableData = invoices.map((inv, index) => `
-            <tr class="${inv.shipped ? 'shipped' : ''}">
-                <td>${inv.number}</td>
-                <td>${inv.date}</td>
-                <td>${inv.customer}</td>
-                <td>${inv.total}</td>
-                <td>
-                    <button class="action-btn details-btn" onclick="showInvoiceDetails(${index})">تفاصيل</button>
-                    <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${index})">حذف</button>
-                    <button class="action-btn ship-btn" onclick="shipInvoice(${index})" ${inv.shipped ? 'disabled' : ''}>
-                        ${inv.shipped ? 'تم الشحن' : 'شحن'}
-                    </button>
-                </td>
-            </tr>
-        `);
 
-            // عرض الصفحة الأولى
-            paginateTable('invoicesTable', window.invoicesTableData, 15, 1);
-        }
 
+
+
+
+
+
+
+        
         function showInvoiceDetails(index) {
             const invoice = invoices[index];
             const detailsModal = document.createElement('div');
@@ -2576,11 +2535,11 @@
         });
 
         function updateShipmentsTable() {
-    const shipmentsSection = document.getElementById('shipping');
-    
-    // إنشاء جدول الشحنات إذا لم يكن موجوداً
-    if (!document.getElementById('shipmentsTable')) {
-        shipmentsSection.innerHTML = `
+            const shipmentsSection = document.getElementById('shipping');
+
+            // إنشاء جدول الشحنات إذا لم يكن موجوداً
+            if (!document.getElementById('shipmentsTable')) {
+                shipmentsSection.innerHTML = `
             <h2 class="section-title">قسم الشحنات</h2>
             <table id="shipmentsTable" class="invoice-table">
                 <thead>
@@ -2597,12 +2556,12 @@
             </table>
             <div id="shipmentsTable-pagination" class="pagination-controls"></div>
         `;
-    }
+            }
 
-    // تحديث البيانات العالمية للشحنات
-    window.shipmentsTableData = invoices
-    .filter(inv => inv.shipped)
-    .map(inv => `
+            // تحديث البيانات العالمية للشحنات
+            window.shipmentsTableData = invoices
+                .filter(inv => inv.shipped)
+                .map(inv => `
         <tr class="${getShipmentRowClass(inv)}" 
             data-invoice-number="${inv.number}"
             data-customer-name="${inv.customer}">
@@ -2611,51 +2570,53 @@
             <td>${inv.customer}</td>
             <td>${inv.address}</td>
             <td>${inv.total}</td>
-            <td>
-                <button class="action-btn details-btn" onclick="showInvoiceDetails(${invoices.indexOf(inv)})" title="تفاصيل">
-                    <i class="fas fa-eye"></i>
-                </button>
-                <button class="action-btn cancel-btn" onclick="updateShipmentStatus(${invoices.indexOf(inv)}, 'cancelled')" 
-                        ${inv.status === 'cancelled' ? 'disabled' : ''} title="إلغاء">
-                    <i class="fas fa-times"></i>
-                </button>
-                <button class="action-btn return-btn" onclick="updateShipmentStatus(${invoices.indexOf(inv)}, 'returned')"
-                        ${inv.status === 'returned' ? 'disabled' : ''} title="مرتجع">
-                    <i class="fas fa-undo"></i>
-                </button>
-                <button class="action-btn paid-btn" onclick="updateShipmentStatus(${invoices.indexOf(inv)}, 'paid')"
-                        ${inv.paid ? 'disabled' : ''} title="تحديد كمدفوع">
-                    <i class="fas fa-check"></i>
-                </button>
-            </td>
+           <td>
+                    <select class="status-dropdown" onchange="updateShipmentStatus(${invoices.indexOf(inv)}, this.value)">
+                        <option value="pending" ${inv.status === 'pending' ? 'selected' : ''}>قيد التسليم</option>
+                        <option value="delivered" ${inv.status === 'delivered' ? 'selected' : ''}>تم التسليم</option>
+                        <option value="cancelled" ${inv.status === 'cancelled' ? 'selected' : ''}>إلغاء</option>
+                        <option value="returned" ${inv.status === 'returned' ? 'selected' : ''}>مرتجع</option>
+                        <option value="paid" ${inv.paid ? 'selected' : ''}>مدفوع</option>
+                    </select>
+                    <button class="action-btn details-btn" onclick="showInvoiceDetails(${invoices.indexOf(inv)})" title="تفاصيل">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
         </tr>
     `);
 
-    // عرض الصفحة الأولى باستخدام الدالة المحسنة
-    paginateShipmentsTable(1);
-}
+            // عرض الصفحة الأولى باستخدام الدالة المحسنة
+            paginateShipmentsTable(1);
+        }
 
-function paginateShipmentsTable(pageNumber) {
-    const shipmentsPerPage = 10;
-    const tableBody = document.querySelector('#shipmentsTable tbody');
-    const totalPages = Math.ceil(window.shipmentsTableData.length / shipmentsPerPage);
-    
-    // التأكد من أن رقم الصفحة صالح
-    if (pageNumber < 1) pageNumber = 1;
-    if (pageNumber > totalPages) pageNumber = totalPages;
-    
-    const start = (pageNumber - 1) * shipmentsPerPage;
-    const end = start + shipmentsPerPage;
-    
-    // تحديث محتوى الجدول
-    if (tableBody && window.shipmentsTableData) {
-        tableBody.innerHTML = window.shipmentsTableData.slice(start, end).join('');
-    }
 
-    // تحديث أزرار التنقل
-    const paginationDiv = document.querySelector('#shipmentsTable-pagination');
-    if (paginationDiv) {
-        paginationDiv.innerHTML = `
+
+
+
+        
+
+
+        function paginateShipmentsTable(pageNumber) {
+            const shipmentsPerPage = 10;
+            const tableBody = document.querySelector('#shipmentsTable tbody');
+            const totalPages = Math.ceil(window.shipmentsTableData.length / shipmentsPerPage);
+
+            // التأكد من أن رقم الصفحة صالح
+            if (pageNumber < 1) pageNumber = 1;
+            if (pageNumber > totalPages) pageNumber = totalPages;
+
+            const start = (pageNumber - 1) * shipmentsPerPage;
+            const end = start + shipmentsPerPage;
+
+            // تحديث محتوى الجدول
+            if (tableBody && window.shipmentsTableData) {
+                tableBody.innerHTML = window.shipmentsTableData.slice(start, end).join('');
+            }
+
+            // تحديث أزرار التنقل
+            const paginationDiv = document.querySelector('#shipmentsTable-pagination');
+            if (paginationDiv) {
+                paginationDiv.innerHTML = `
             <button onclick="paginateShipmentsTable(${pageNumber - 1})" 
                     ${pageNumber === 1 ? 'disabled' : ''}>
                 السابق
@@ -2666,8 +2627,8 @@ function paginateShipmentsTable(pageNumber) {
                 التالي
             </button>
         `;
-    }
-}
+            }
+        }
 
         function updateShipmentsPaginationControls(currentPage, totalPages) {
             const paginationDiv = document.getElementById('shipmentsPagination');
@@ -2712,6 +2673,17 @@ function paginateShipmentsTable(pageNumber) {
                     break;
             }
 
+
+
+             // تحديث حالة الفاتورة
+    if (status === 'paid') {
+        invoice.paid = true;
+    } else {
+        invoice.status = status;
+        if (status === 'delivered') {
+            invoice.paid = false;
+        }
+    }
             // حفظ التغييرات في Firebase
             firebaseHelper.saveData('invoices', invoices)
                 .then(() => {
@@ -2781,6 +2753,8 @@ function paginateShipmentsTable(pageNumber) {
         }
 
 
+        
+
 
 
 
@@ -2841,6 +2815,11 @@ function paginateShipmentsTable(pageNumber) {
                 <button class="action-btn ship-btn" onclick="shipInvoice(${start + index})" ${inv.shipped ? 'disabled' : ''} title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
                     <i class="fas fa-truck${inv.shipped ? '-loading' : ''}"></i>
                 </button>
+                ${inv.shipped ? `
+                    <span class="status-badge ${getInvoiceStatusClass(inv)}">
+                        ${getInvoiceStatusText(inv)}
+                    </span>
+                ` : ''}
             </td>
         </tr>
     `).join('');
@@ -2848,6 +2827,37 @@ function paginateShipmentsTable(pageNumber) {
             // تحديث أزرار التنقل
             updatePaginationControls(pageNumber, totalPages);
         }
+
+
+
+
+
+
+
+
+        function getInvoiceStatusText(invoice) {
+    if (!invoice.shipped) return 'قيد الانتظار';
+    if (invoice.status === 'delivered') return 'تم التسليم';
+    if (invoice.status === 'cancelled') return 'ملغاة';
+    if (invoice.status === 'returned') return 'مرتجعة';
+    if (invoice.paid) return 'مدفوعة';
+    return 'قيد التسليم';
+}
+
+function getInvoiceStatusClass(invoice) {
+    if (!invoice.shipped) return 'status-pending';
+    if (invoice.status === 'delivered') return 'status-delivered';
+    if (invoice.status === 'cancelled') return 'status-cancelled';
+    if (invoice.status === 'returned') return 'status-returned';
+    if (invoice.paid) return 'status-paid';
+    return 'status-pending';
+}
+
+
+
+
+
+
 
         // دالة لتحديث أزرار التنقل
         function updatePaginationControls(currentPage, totalPages) {
@@ -2904,7 +2914,7 @@ function paginateShipmentsTable(pageNumber) {
             </thead>
             <tbody></tbody>
         </table>
-        <div id="productsPagination"></div>
+        <div id="productsPagination" style="margin-top: 20px; text-align: center;"></div>
     `;
 
             // عرض الصفحة الأولى من المنتجات
@@ -3491,33 +3501,33 @@ function paginateShipmentsTable(pageNumber) {
 
 
         function highlightShipment(invoiceNumber) {
-    // التأكد من عرض الصفحة التي تحتوي على الشحنة
-    const shipment = invoices.find(inv => inv.shipped && inv.number === invoiceNumber);
-    if (!shipment) return;
+            // التأكد من عرض الصفحة التي تحتوي على الشحنة
+            const shipment = invoices.find(inv => inv.shipped && inv.number === invoiceNumber);
+            if (!shipment) return;
 
-    const shipmentIndex = invoices.filter(inv => inv.shipped).indexOf(shipment);
-    const page = Math.floor(shipmentIndex / 10) + 1;
-    
-    // تحديث جدول الشحنات وعرض الصفحة المناسبة
-    paginateShipmentsTable(page);
+            const shipmentIndex = invoices.filter(inv => inv.shipped).indexOf(shipment);
+            const page = Math.floor(shipmentIndex / 10) + 1;
 
-    // انتظار لحظة حتى يتم تحديث الجدول
-    setTimeout(() => {
-        const row = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoiceNumber}"]`);
-        if (row) {
-            // التمرير إلى الشحنة
-            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // إضافة تأثير الوميض
-            row.classList.add('highlight-row');
-            
-            // إزالة الوميض بعد انتهاء الأنيميشن
+            // تحديث جدول الشحنات وعرض الصفحة المناسبة
+            paginateShipmentsTable(page);
+
+            // انتظار لحظة حتى يتم تحديث الجدول
             setTimeout(() => {
-                row.classList.remove('highlight-row');
-            }, 6000); // 6 ثواني (3 مرات × 2 ثانية)
+                const row = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoiceNumber}"]`);
+                if (row) {
+                    // التمرير إلى الشحنة
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                    // إضافة تأثير الوميض
+                    row.classList.add('highlight-row');
+
+                    // إزالة الوميض بعد انتهاء الأنيميشن
+                    setTimeout(() => {
+                        row.classList.remove('highlight-row');
+                    }, 6000); // 6 ثواني (3 مرات × 2 ثانية)
+                }
+            }, 300);
         }
-    }, 300);
-}
 
 
 
