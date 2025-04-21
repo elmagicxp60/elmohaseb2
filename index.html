@@ -2546,55 +2546,73 @@
         }
 
         function updateShipmentStatus(index, status) {
-            const invoice = invoices[index];
-            let notificationMessage = '';
+    const invoice = invoices[index];
+    let notificationMessage = '';
 
-            switch (status) {
-                case 'cancelled':
-                    invoice.status = 'cancelled';
-                    notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
-                    break;
-                case 'returned':
-                    invoice.status = 'returned';
-                    notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
-                    break;
-                case 'paid':
-                    invoice.paid = true;
-                    notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
-                    break;
-            }
-
-
-
-            // تحديث حالة الفاتورة
-            if (status === 'paid') {
-                invoice.paid = true;
-            } else {
-                invoice.status = status;
-                if (status === 'delivered') {
-                    invoice.paid = false;
-                }
-            }
-            // حفظ التغييرات في Firebase
-            firebaseHelper.saveData('invoices', invoices)
-                .then(() => {
-                    // إضافة إشعار بالتحديث
-                    addNotification(
-                        'تحديث حالة الشحنة',
-                        notificationMessage,
-                        'info'
-                    );
-                    updateShipmentsTable();
-                })
-                .catch(error => {
-                    console.error('خطأ في تحديث حالة الشحن:', error);
-                    addNotification(
-                        'خطأ',
-                        'حدث خطأ في تحديث حالة الشحنة',
-                        'error'
-                    );
-                });
+    // تحديث حالة الفاتورة
+    if (status === 'paid') {
+        invoice.paid = true;
+        // لا نغير status هنا
+        notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
+    } else {
+        invoice.status = status;
+        invoice.paid = false;
+        
+        switch (status) {
+            case 'delivered':
+                notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
+                break;
+            case 'cancelled':
+                notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
+                break;
+            case 'returned':
+                notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
+                break;
+            default:
+                notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
         }
+    }
+
+    // حفظ في Firebase وتحديث الواجهة
+    firebaseHelper.saveData('invoices', invoices)
+        .then(() => {
+            // تحديث كلا الجدولين
+            updateShipmentsTable();
+            updateInvoicesTable();
+            
+            // إضافة إشعار
+            addNotification(
+                'تحديث حالة الشحنة',
+                notificationMessage,
+                'info'
+            );
+            
+            // تمييز الصف المحدث في كلا الجدولين
+            setTimeout(() => {
+                // تمييز في جدول الشحنات
+                const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
+                if (shipmentRow) {
+                    shipmentRow.classList.add('highlight-row');
+                    setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
+                }
+                
+                // تمييز في جدول الفواتير
+                const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
+                if (invoiceRow) {
+                    invoiceRow.classList.add('highlight-row');
+                    setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
+                }
+            }, 100);
+        })
+        .catch(error => {
+            console.error('خطأ في تحديث حالة الشحن:', error);
+            addNotification(
+                'خطأ',
+                'حدث خطأ في تحديث حالة الشحنة',
+                'error'
+            );
+        });
+}
 
         // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
         function updateInvoicesTable() {
@@ -2727,13 +2745,13 @@
 
 
         function getInvoiceStatusText(invoice) {
-            if (!invoice.shipped) return 'قيد الانتظار';
-            if (invoice.status === 'delivered') return 'تم التسليم';
-            if (invoice.status === 'cancelled') return 'ملغاة';
-            if (invoice.status === 'returned') return 'مرتجعة';
-            if (invoice.paid) return 'مدفوعة';
-            return 'قيد التسليم';
-        }
+    if (!invoice.shipped) return 'قيد الانتظار';
+    if (invoice.paid) return 'مدفوعة';  // تحريك هذا الشرط للأعلى
+    if (invoice.status === 'delivered') return 'تم التسليم';
+    if (invoice.status === 'cancelled') return 'ملغاة';
+    if (invoice.status === 'returned') return 'مرتجعة';
+    return 'قيد التسليم';
+}
 
         function getInvoiceStatusClass(invoice) {
             if (!invoice.shipped) return 'status-pending';
@@ -3527,6 +3545,13 @@ function deleteProduct(id) {
                 }
             }, 100);
         }
+
+
+
+
+
+
+
 
 
 
