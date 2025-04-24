@@ -42,14 +42,6 @@
 
 
 
-
-
-
-
-
-
-
-
         body {
             font-family: 'Segoe UI', 'Arial', sans-serif;
             margin: 0;
@@ -1450,9 +1442,13 @@
                         <i class="fab fa-whatsapp"></i>
                         مشاركة عبر واتساب
                     </button>
+                    
                 </div>
+                
             </div>
         </div>
+
+        
 
     </div>
     <div id="invoiceModal" class="modal">
@@ -1542,6 +1538,16 @@
             <div class="form-group">
                 <label>إجمالي الفاتورة</label>
                 <input type="text" id="totalAmount" readonly>
+            </div>
+
+            <div class="form-group">
+                <label>الخصم</label>
+                <input type="number" id="discountAmount" value="0" onchange="calculateInvoiceTotal()">
+            </div>
+
+            <div class="form-group">
+                <label>الإجمالي النهائي</label>
+                <input type="text" id="finalTotalAmount" readonly>
             </div>
 
             <button class="new-invoice-btn" onclick="saveFullInvoice()">حفظ الفاتورة</button>
@@ -1720,6 +1726,11 @@
             const totals = [...document.getElementsByClassName('item-total')];
             const invoiceTotal = totals.reduce((sum, input) => sum + (Number(input.value) || 0), 0);
             document.getElementById('totalAmount').value = invoiceTotal;
+
+            // حساب الإجمالي النهائي بعد الخصم
+            const discount = Number(document.getElementById('discountAmount').value) || 0;
+            const finalTotal = invoiceTotal - discount;
+            document.getElementById('finalTotalAmount').value = finalTotal >= 0 ? finalTotal : 0;
         }
 
         function deleteRow(button) {
@@ -1727,21 +1738,6 @@
             row.remove();
             calculateInvoiceTotal();
         }
-
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -1793,7 +1789,11 @@
                         </tbody>
                     </table>
                     <div class="receipt-total">
-                        <strong>الإجمالي الكلي: ${invoice.total} ج.م</strong>
+                        <strong>الإجمالي : ${invoice.total} ج.م</strong>
+                        <br>
+                        <strong>الخصم: ${invoice.discount || 0} ج.م</strong>
+                        <br>
+                        <strong>الإجمالي الكلي: ${invoice.finalTotal || invoice.total} ج.م</strong>
                     </div>
                     <div class="receipt-footer">
                         <p>شكراً لتعاملكم معنا</p>
@@ -1962,6 +1962,8 @@
             document.getElementById('address').value = '';
             document.getElementById('invoiceItems').innerHTML = '';
             document.getElementById('totalAmount').value = '';
+            document.getElementById('discountAmount').value = '0';
+            document.getElementById('finalTotalAmount').value = '';
             addInvoiceItem();
         }
 
@@ -2013,24 +2015,24 @@
             removeBtn.style.display = 'none';
         }
 
-       
+
         function clearProductForm() {
-    document.getElementById('productName').value = '';
-    document.getElementById('buyPrice').value = '';
-    document.getElementById('sellPrice').value = '';
-    document.getElementById('quantity').value = '';
-    document.getElementById('imagePreview').src = 'https://via.placeholder.com/150'; // أو الصورة الافتراضية اللي عندك
+            document.getElementById('productName').value = '';
+            document.getElementById('buyPrice').value = '';
+            document.getElementById('sellPrice').value = '';
+            document.getElementById('quantity').value = '';
+            document.getElementById('imagePreview').src = 'https://via.placeholder.com/150'; // أو الصورة الافتراضية اللي عندك
 
-    const modal = document.getElementById('productModal');
-    if (modal && modal.dataset.editingId) {
-        delete modal.dataset.editingId; // إزالة معرف التعديل
-    }
+            const modal = document.getElementById('productModal');
+            if (modal && modal.dataset.editingId) {
+                delete modal.dataset.editingId; // إزالة معرف التعديل
+            }
 
-    const removeBtn = document.querySelector('.remove-image-btn');
-    if (removeBtn) {
-        removeBtn.style.display = 'none';
-    }
-}
+            const removeBtn = document.querySelector('.remove-image-btn');
+            if (removeBtn) {
+                removeBtn.style.display = 'none';
+            }
+        }
 
 
         function showProductImage(imageSrc) {
@@ -2152,17 +2154,17 @@
                     updateClientsList();
                     clearClientForm();
                     closeClientModal();
-                     // الانتقال إلى قسم العملاء
-            showSection('clients');
-            updateClientsList();
-            // تمييز العميل الجديد (اختياري)
-            const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
-            if (clientRow) {
-                clientRow.classList.add('highlight-row');
-                setTimeout(() => {
-                    clientRow.classList.remove('highlight-row');
-                }, 6000);
-            }
+                    // الانتقال إلى قسم العملاء
+                    showSection('clients');
+                    updateClientsList();
+                    // تمييز العميل الجديد (اختياري)
+                    const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
+                    if (clientRow) {
+                        clientRow.classList.add('highlight-row');
+                        setTimeout(() => {
+                            clientRow.classList.remove('highlight-row');
+                        }, 6000);
+                    }
                 })
                 .catch(error => {
                     console.error('خطأ في حفظ العميل:', error);
@@ -2546,73 +2548,73 @@
         }
 
         function updateShipmentStatus(index, status) {
-    const invoice = invoices[index];
-    let notificationMessage = '';
+            const invoice = invoices[index];
+            let notificationMessage = '';
 
-    // تحديث حالة الفاتورة
-    if (status === 'paid') {
-        invoice.paid = true;
-        // لا نغير status هنا
-        notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
-    } else {
-        invoice.status = status;
-        invoice.paid = false;
-        
-        switch (status) {
-            case 'delivered':
-                notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
-                break;
-            case 'cancelled':
-                notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
-                break;
-            case 'returned':
-                notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
-                break;
-            default:
-                notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
+            // تحديث حالة الفاتورة
+            if (status === 'paid') {
+                invoice.paid = true;
+                // لا نغير status هنا
+                notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
+            } else {
+                invoice.status = status;
+                invoice.paid = false;
+
+                switch (status) {
+                    case 'delivered':
+                        notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    case 'cancelled':
+                        notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    case 'returned':
+                        notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    default:
+                        notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
+                }
+            }
+
+            // حفظ في Firebase وتحديث الواجهة
+            firebaseHelper.saveData('invoices', invoices)
+                .then(() => {
+                    // تحديث كلا الجدولين
+                    updateShipmentsTable();
+                    updateInvoicesTable();
+
+                    // إضافة إشعار
+                    addNotification(
+                        'تحديث حالة الشحنة',
+                        notificationMessage,
+                        'info'
+                    );
+
+                    // تمييز الصف المحدث في كلا الجدولين
+                    setTimeout(() => {
+                        // تمييز في جدول الشحنات
+                        const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
+                        if (shipmentRow) {
+                            shipmentRow.classList.add('highlight-row');
+                            setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
+                        }
+
+                        // تمييز في جدول الفواتير
+                        const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
+                        if (invoiceRow) {
+                            invoiceRow.classList.add('highlight-row');
+                            setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
+                        }
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('خطأ في تحديث حالة الشحن:', error);
+                    addNotification(
+                        'خطأ',
+                        'حدث خطأ في تحديث حالة الشحنة',
+                        'error'
+                    );
+                });
         }
-    }
-
-    // حفظ في Firebase وتحديث الواجهة
-    firebaseHelper.saveData('invoices', invoices)
-        .then(() => {
-            // تحديث كلا الجدولين
-            updateShipmentsTable();
-            updateInvoicesTable();
-            
-            // إضافة إشعار
-            addNotification(
-                'تحديث حالة الشحنة',
-                notificationMessage,
-                'info'
-            );
-            
-            // تمييز الصف المحدث في كلا الجدولين
-            setTimeout(() => {
-                // تمييز في جدول الشحنات
-                const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
-                if (shipmentRow) {
-                    shipmentRow.classList.add('highlight-row');
-                    setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
-                }
-                
-                // تمييز في جدول الفواتير
-                const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
-                if (invoiceRow) {
-                    invoiceRow.classList.add('highlight-row');
-                    setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
-                }
-            }, 100);
-        })
-        .catch(error => {
-            console.error('خطأ في تحديث حالة الشحن:', error);
-            addNotification(
-                'خطأ',
-                'حدث خطأ في تحديث حالة الشحنة',
-                'error'
-            );
-        });
-}
 
         // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
         function updateInvoicesTable() {
@@ -2745,13 +2747,13 @@
 
 
         function getInvoiceStatusText(invoice) {
-    if (!invoice.shipped) return 'قيد الانتظار';
-    if (invoice.paid) return 'مدفوعة';  // تحريك هذا الشرط للأعلى
-    if (invoice.status === 'delivered') return 'تم التسليم';
-    if (invoice.status === 'cancelled') return 'ملغاة';
-    if (invoice.status === 'returned') return 'مرتجعة';
-    return 'قيد التسليم';
-}
+            if (!invoice.shipped) return 'قيد الانتظار';
+            if (invoice.paid) return 'مدفوعة';  // تحريك هذا الشرط للأعلى
+            if (invoice.status === 'delivered') return 'تم التسليم';
+            if (invoice.status === 'cancelled') return 'ملغاة';
+            if (invoice.status === 'returned') return 'مرتجعة';
+            return 'قيد التسليم';
+        }
 
         function getInvoiceStatusClass(invoice) {
             if (!invoice.shipped) return 'status-pending';
@@ -3164,186 +3166,188 @@
 
         // تعديل دالة saveProduct لإضافة إشعار
         function saveProduct() {
-    try {
-        // جمع بيانات المنتج
-        const productName = document.getElementById('productName').value;
-        const buyPrice = parseFloat(document.getElementById('buyPrice').value);
-        const sellPrice = parseFloat(document.getElementById('sellPrice').value);
-        const quantity = parseInt(document.getElementById('quantity').value);
-        const imagePreview = document.getElementById('imagePreview');
+            try {
+                // جمع بيانات المنتج
+                const productName = document.getElementById('productName').value;
+                const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+                const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const imagePreview = document.getElementById('imagePreview');
 
-        // التحقق من البيانات
-        if (!productName || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(quantity)) {
-            alert('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
-            return;
-        }
+                // التحقق من البيانات
+                if (!productName || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(quantity)) {
+                    alert('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+                    return;
+                }
 
-        // تجهيز بيانات المنتج
-        const productData = {
-            id: Date.now(),
-            name: productName,
-            buyPrice: buyPrice,
-            sellPrice: sellPrice,
-            quantity: quantity,
-            image: imagePreview.src || 'https://via.placeholder.com/150'
-        };
+                // تجهيز بيانات المنتج
+                const productData = {
+                    id: Date.now(),
+                    name: productName,
+                    buyPrice: buyPrice,
+                    sellPrice: sellPrice,
+                    quantity: quantity,
+                    image: imagePreview.src || 'https://via.placeholder.com/150'
+                };
 
-        const editingId = document.getElementById('productModal').dataset.editingId;
+                const editingId = document.getElementById('productModal').dataset.editingId;
 
-        // تحديث المصفوفة المحلية أولاً
-        if (editingId) {
-            const index = products.findIndex(p => p.id === parseInt(editingId));
-            if (index !== -1) {
-                products[index] = { ...products[index], ...productData };
+                // تحديث المصفوفة المحلية أولاً
+                if (editingId) {
+                    const index = products.findIndex(p => p.id === parseInt(editingId));
+                    if (index !== -1) {
+                        products[index] = { ...products[index], ...productData };
+                    }
+                } else {
+                    products.push(productData);
+                }
+
+                // تحديث واجهة المستخدم فوراً
+                updateProductsList();
+                clearProductForm();
+                closeProductModal();
+
+                // إضافة إشعار نجاح
+                addNotification(
+                    'منتج جديد',
+                    `تم ${editingId ? 'تحديث' : 'إضافة'} المنتج "${productName}" بنجاح`,
+                    'success'
+                );
+
+                // حفظ في Firebase بعد تحديث الواجهة
+                firebaseHelper.saveData('products', products)
+                    .catch(error => {
+                        console.error('خطأ في حفظ المنتج:', error);
+                        addNotification(
+                            'خطأ',
+                            'حدث خطأ أثناء حفظ المنتج في قاعدة البيانات',
+                            'error'
+                        );
+                    });
+
+                // الانتقال إلى قسم المنتجات وتمييز المنتج الجديد
+                showSection('products');
+                const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
+                if (productRow) {
+                    productRow.classList.add('highlight-row');
+                    setTimeout(() => {
+                        productRow.classList.remove('highlight-row');
+                    }, 6000);
+                }
+
+            } catch (error) {
+                console.error('خطأ:', error);
+                addNotification('خطأ', 'حدث خطأ غير متوقع', 'error');
             }
-        } else {
-            products.push(productData);
         }
 
-        // تحديث واجهة المستخدم فوراً
-        updateProductsList();
-        clearProductForm();
-        closeProductModal();
+        function deleteProduct(id) {
+            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
+                // تحديث المصفوفة المحلية أولاً
+                products = products.filter(p => p.id !== parseInt(id));
 
-        // إضافة إشعار نجاح
-        addNotification(
-            'منتج جديد',
-            `تم ${editingId ? 'تحديث' : 'إضافة'} المنتج "${productName}" بنجاح`,
-            'success'
-        );
+                // تحديث واجهة المستخدم فوراً
+                updateProductsList();
 
-        // حفظ في Firebase بعد تحديث الواجهة
-        firebaseHelper.saveData('products', products)
-            .catch(error => {
-                console.error('خطأ في حفظ المنتج:', error);
+                // إضافة إشعار نجاح
                 addNotification(
-                    'خطأ',
-                    'حدث خطأ أثناء حفظ المنتج في قاعدة البيانات',
-                    'error'
+                    'حذف منتج',
+                    'تم حذف المنتج بنجاح',
+                    'success'
                 );
-            });
 
-        // الانتقال إلى قسم المنتجات وتمييز المنتج الجديد
-        showSection('products');
-        const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
-        if (productRow) {
-            productRow.classList.add('highlight-row');
-            setTimeout(() => {
-                productRow.classList.remove('highlight-row');
-            }, 6000);
+                // حفظ في Firebase بعد تحديث الواجهة
+                firebaseHelper.saveData('products', products)
+                    .catch(error => {
+                        console.error('خطأ في حذف المنتج:', error);
+                        addNotification(
+                            'خطأ',
+                            'حدث خطأ أثناء حذف المنتج من قاعدة البيانات',
+                            'error'
+                        );
+                    });
+            }
         }
-
-    } catch (error) {
-        console.error('خطأ:', error);
-        addNotification('خطأ', 'حدث خطأ غير متوقع', 'error');
-    }
-}
-
-function deleteProduct(id) {
-    if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-        // تحديث المصفوفة المحلية أولاً
-        products = products.filter(p => p.id !== parseInt(id));
-        
-        // تحديث واجهة المستخدم فوراً
-        updateProductsList();
-        
-        // إضافة إشعار نجاح
-        addNotification(
-            'حذف منتج',
-            'تم حذف المنتج بنجاح',
-            'success'
-        );
-
-        // حفظ في Firebase بعد تحديث الواجهة
-        firebaseHelper.saveData('products', products)
-            .catch(error => {
-                console.error('خطأ في حذف المنتج:', error);
-                addNotification(
-                    'خطأ',
-                    'حدث خطأ أثناء حذف المنتج من قاعدة البيانات',
-                    'error'
-                );
-            });
-    }
-}
 
         // تعديل دالة saveFullInvoice لإضافة إشعار
         function saveFullInvoice() {
-    // تجميع بيانات الفاتورة
-    const newInvoice = {
-        number: document.getElementById('invoiceNumber').value,
-        date: document.getElementById('invoiceDate').value,
-        customer: document.getElementById('customerName').value,
-        phone: document.getElementById('phone').value,
-        governorate: document.getElementById('governorate').value,
-        address: document.getElementById('address').value,
-        items: [...document.getElementById('invoiceItems').rows].map(row => ({
-            name: row.querySelector('.item-name').value,
-            price: Number(row.querySelector('.item-price').value),
-            quantity: Number(row.querySelector('.item-quantity').value),
-            total: Number(row.querySelector('.item-total').value)
-        })),
-        total: Number(document.getElementById('totalAmount').value)
-    };
+            // تجميع بيانات الفاتورة
+            const newInvoice = {
+                number: document.getElementById('invoiceNumber').value,
+                date: document.getElementById('invoiceDate').value,
+                customer: document.getElementById('customerName').value,
+                phone: document.getElementById('phone').value,
+                governorate: document.getElementById('governorate').value,
+                address: document.getElementById('address').value,
+                items: [...document.getElementById('invoiceItems').rows].map(row => ({
+                    name: row.querySelector('.item-name').value,
+                    price: Number(row.querySelector('.item-price').value),
+                    quantity: Number(row.querySelector('.item-quantity').value),
+                    total: Number(row.querySelector('.item-total').value)
+                })),
+                total: Number(document.getElementById('totalAmount').value),
+                discount: Number(document.getElementById('discountAmount').value) || 0,
+                finalTotal: Number(document.getElementById('finalTotalAmount').value)
+            };
 
-    const editIndex = parseInt(document.getElementById('invoiceModal').dataset.editIndex);
-    const isEditing = !isNaN(editIndex);
+            const editIndex = parseInt(document.getElementById('invoiceModal').dataset.editIndex);
+            const isEditing = !isNaN(editIndex);
 
-    if (isEditing) {
-        newInvoice.shipped = invoices[editIndex].shipped || false;
-        invoices[editIndex] = newInvoice;
-        document.getElementById('invoiceModal').removeAttribute('data-edit-index');
-    } else {
-        invoices.push(newInvoice);
-        invoiceCounter++;
-    }
+            if (isEditing) {
+                newInvoice.shipped = invoices[editIndex].shipped || false;
+                invoices[editIndex] = newInvoice;
+                document.getElementById('invoiceModal').removeAttribute('data-edit-index');
+            } else {
+                invoices.push(newInvoice);
+                invoiceCounter++;
+            }
 
-    // حفظ في Firebase
-    firebaseHelper.saveData('invoices', invoices)
-        .then(() => {
-            closeInvoiceModal();
-            clearInvoiceForm();
-            
-            // إضافة إشعار
-            addNotification(
-                'فاتورة جديدة',
-                `تم ${isEditing ? 'تحديث' : 'إنشاء'} الفاتورة رقم ${newInvoice.number} بنجاح`,
-                'success'
-            );
+            // حفظ في Firebase
+            firebaseHelper.saveData('invoices', invoices)
+                .then(() => {
+                    closeInvoiceModal();
+                    clearInvoiceForm();
 
-            // الانتقال إلى قسم الفواتير
-            showSection('invoices');
+                    // إضافة إشعار
+                    addNotification(
+                        'فاتورة جديدة',
+                        `تم ${isEditing ? 'تحديث' : 'إنشاء'} الفاتورة رقم ${newInvoice.number} بنجاح`,
+                        'success'
+                    );
 
-            // حساب الصفحة التي تحتوي على الفاتورة
-            const invoiceIndex = isEditing ? editIndex : invoices.length - 1;
-            const page = Math.floor(invoiceIndex / 10) + 1;
+                    // الانتقال إلى قسم الفواتير
+                    showSection('invoices');
 
-            // تحديث جدول الفواتير وعرض الصفحة المناسبة
-            updateInvoicesTable();
-            setTimeout(() => {
-                paginateInvoices(page);
-                // تمييز الفاتورة
-                setTimeout(() => {
-                    const row = document.querySelector(`tr[data-invoice-number="${newInvoice.number}"]`);
-                    if (row) {
-                        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        row.classList.add('highlight-row');
+                    // حساب الصفحة التي تحتوي على الفاتورة
+                    const invoiceIndex = isEditing ? editIndex : invoices.length - 1;
+                    const page = Math.floor(invoiceIndex / 10) + 1;
+
+                    // تحديث جدول الفواتير وعرض الصفحة المناسبة
+                    updateInvoicesTable();
+                    setTimeout(() => {
+                        paginateInvoices(page);
+                        // تمييز الفاتورة
                         setTimeout(() => {
-                            row.classList.remove('highlight-row');
-                        }, 6000);
-                    }
-                }, 100);
-            }, 100);
-        })
-        .catch(error => {
-            console.error('خطأ في حفظ الفاتورة:', error);
-            addNotification(
-                'خطأ',
-                'حدث خطأ أثناء حفظ الفاتورة',
-                'error'
-            );
-        });
-}
+                            const row = document.querySelector(`tr[data-invoice-number="${newInvoice.number}"]`);
+                            if (row) {
+                                row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                row.classList.add('highlight-row');
+                                setTimeout(() => {
+                                    row.classList.remove('highlight-row');
+                                }, 6000);
+                            }
+                        }, 100);
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('خطأ في حفظ الفاتورة:', error);
+                    addNotification(
+                        'خطأ',
+                        'حدث خطأ أثناء حفظ الفاتورة',
+                        'error'
+                    );
+                });
+        }
 
 
 
@@ -3545,16 +3549,6 @@ function deleteProduct(id) {
                 }
             }, 100);
         }
-
-
-
-
-
-
-
-
-
-
 
 
     </script>
