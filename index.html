@@ -1083,6 +1083,35 @@
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
             transition: all 0.3s ease;
         }
+
+
+
+
+        .profits-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .profits-table th,
+        .profits-table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+
+        .profits-table tbody tr:hover {
+            background-color: #f5f6fa;
+        }
+
+        .profits-table tfoot {
+            font-weight: bold;
+        }
+
+        .profits-table tfoot td {
+            border-top: 2px solid #ddd;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -1137,56 +1166,75 @@
         };
 
         // تحميل البيانات عند بدء التطبيق
-        window.onload = async function () {
-            try {
-                // تحميل أسعار الشحن أولاً
-        const savedRates = await firebaseHelper.getData('shippingRates');
+        // تحميل البيانات عند بدء التطبيق
+window.onload = async function () {
+    try {
+        // تحميل البيانات من Firebase
+        const [savedRates, savedInvoices, savedProducts, savedClients] = await Promise.all([
+            firebaseHelper.getData('shippingRates'),
+            firebaseHelper.getData('invoices'),
+            firebaseHelper.getData('products'),
+            firebaseHelper.getData('clients')
+        ]);
+
+        // تحميل أسعار الشحن
         if (savedRates) {
             shippingRates = savedRates;
         }
-                // تحميل الفواتير
-                const savedInvoices = await firebaseHelper.getData('invoices');
-                if (savedInvoices) {
-                    invoices = savedInvoices;
-                    invoiceCounter = invoices.length + 1;
-                    updateInvoicesTable();
-                }
 
-                // تحميل المنتجات
-                const savedProducts = await firebaseHelper.getData('products');
-                if (savedProducts) {
-                    products = savedProducts;
-                    updateProductsList();
-                }
+        // تحميل الفواتير
+        if (savedInvoices) {
+            invoices = savedInvoices;
+            // تحديث رقم آخر فاتورة
+            const lastNumber = getLastInvoiceNumber();
+            invoiceCounter = lastNumber + 1;
+            updateInvoicesTable();
+        }
 
-                // تحميل العملاء
-                const savedClients = await firebaseHelper.getData('clients');
-                if (savedClients) {
-                    clients = savedClients;
-                    updateClientsList();
-                }
+        // تحميل المنتجات
+        if (savedProducts) {
+            products = savedProducts;
+            updateProductsList();
+        }
 
-                // إضافة مستمع للتغييرات في الفواتير
-                database.ref('invoices').on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        invoices = data;
-                        updateInvoicesTable();
-                        updateShipmentsTable(); // تحديث جدول الشحنات
-                    }
-                });
+        // تحميل العملاء
+        if (savedClients) {
+            clients = savedClients;
+            updateClientsList();
+        }
 
-                // تحديث جدول الشحنات عند فتح قسم الشحنات
-                if (document.getElementById('shipping').classList.contains('active')) {
-                    updateShipmentsTable();
-                }
-
-                showSection('invoices');
-
-            } catch (error) {
-                console.error('خطأ في تحميل البيانات:', error);
+        // مراقبة التغييرات في الفواتير
+        database.ref('invoices').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                invoices = data;
+                updateInvoicesTable();
+                updateShipmentsTable();
             }
-        };
+        });
+
+        // تحديث جدول الشحنات إذا كان قسم الشحنات مفتوحاً
+        if (document.getElementById('shipping').classList.contains('active')) {
+            updateShipmentsTable();
+        }
+
+        // عرض قسم الفواتير افتراضياً
+        showSection('invoices');
+
+        // تهيئة نظام الإشعارات
+        initNotifications();
+
+        console.log('تم تحميل البيانات بنجاح');
+
+    } catch (error) {
+        console.error('خطأ في تحميل البيانات:', error);
+        addNotification(
+            'خطأ في التحميل',
+            'حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة',
+            'error'
+        );
+    }
+};
     </script>
     <script>
         // دالة لتقسيم الصفحات
@@ -1424,9 +1472,48 @@
         </div>
         <div id="reports" class="section-content">
             <h2 class="section-title">قسم التقارير</h2>
-            <p>محتوى قسم التقارير يظهر هنا</p>
+
+            <div class="settings-grid">
+                <div class="settings-card">
+                    <h3><i class="fas fa-chart-line"></i> الأرباح</h3>
+                    <p>عرض تقرير مفصل عن أرباح المبيعات</p>
+                    <button class="share-btn" onclick="showProfitsReport()">
+                        <i class="fas fa-search-dollar"></i>
+                        عرض تقرير الأرباح
+                    </button>
+                </div>
+            </div>
+            `;
         </div>
 
+        <!-- إضافة نموذج تقرير الأرباح -->
+        <div id="profitsModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeProfitsModal()">&times;</span>
+                <h2>تقرير الأرباح</h2>
+                <table class="profits-table">
+                    <thead>
+                        <tr>
+                            <th style="background-color: #3498db; color: white;">رقم الفاتورة</th>
+                            <th style="background-color: #e74c3c; color: white;">تكلفة الشراء</th>
+                            <th style="background-color: #2ecc71; color: white;">سعر البيع</th>
+                            <th style="background-color: #f39c12; color: white;">الخصم</th>
+                            <th style="background-color: #9b59b6; color: white;">صافي الربح</th>
+                        </tr>
+                    </thead>
+                    <tbody id="profitsTableBody"></tbody>
+                    <tfoot>
+                        <tr>
+                            <td style="background-color: #f5f6fa;">الإجمالي</td>
+                            <td style="background-color: #f5f6fa;" id="totalBuying"></td>
+                            <td style="background-color: #f5f6fa;" id="totalValue"></td>
+                            <td style="background-color: #f5f6fa;" id="totalDiscount"></td>
+                            <td style="background-color: #f5f6fa;" id="totalProfit"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
 
 
 
@@ -1717,29 +1804,45 @@
 
 
         // تعديل دالة toggleInvoiceForm
-        function toggleInvoiceForm() {
-            const modal = document.getElementById('invoiceModal');
-            modal.style.display = 'block';
-            document.getElementById('invoiceNumber').value = generateInvoiceNumber();
-            document.getElementById('invoiceDate').value = new Date().toLocaleDateString('ar-EG');
-            clearInvoiceForm();
+function toggleInvoiceForm() {
+    const modal = document.getElementById('invoiceModal');
+    modal.style.display = 'block';
+    
+    // استخدام الدالة المحدثة لتوليد رقم الفاتورة
+    document.getElementById('invoiceNumber').value = generateInvoiceNumber();
+    document.getElementById('invoiceDate').value = new Date().toLocaleDateString('ar-EG');
+    clearInvoiceForm();
 
-            // إضافة مستمع حدث لتغيير المحافظة
-            document.getElementById('governorate').addEventListener('change', function () {
-                updateShippingCost(this.value);
-            });
+    // إضافة مستمع حدث لتغيير المحافظة
+    document.getElementById('governorate').addEventListener('change', function() {
+        updateShippingCost(this.value);
+    });
 
-            // إعداد الاقتراحات لاسم العميل
-            setupAutoComplete('customerName', clients, 'name', (client) => {
-                if (client) {
-                    document.getElementById('phone').value = client.phone;
-                    document.getElementById('governorate').value = client.governorate;
-                    document.getElementById('address').value = client.address;
-                    // تحديث قيمة التوصيل عند اختيار العميل
-                    updateShippingCost(client.governorate);
-                }
-            });
+    // إعداد الاقتراحات لاسم العميل
+    setupAutoComplete('customerName', clients, 'name', (client) => {
+        if (client) {
+            document.getElementById('phone').value = client.phone;
+            document.getElementById('governorate').value = client.governorate;
+            document.getElementById('address').value = client.address;
+            updateShippingCost(client.governorate);
         }
+    });
+}
+
+
+
+
+// دالة للحصول على آخر رقم فاتورة
+function getLastInvoiceNumber() {
+    if (!invoices || invoices.length === 0) return 0;
+    
+    // البحث عن أكبر رقم فاتورة
+    const lastNumber = invoices
+        .map(inv => parseInt(inv.number.replace('#', '')))
+        .reduce((max, current) => Math.max(max, current), 0);
+    
+    return lastNumber;
+}
 
         function closeInvoiceModal() {
             document.getElementById('invoiceModal').style.display = 'none';
@@ -1816,22 +1919,22 @@
 
         // تعديل دالة حساب الإجمالي لتشمل قيمة التوصيل
         function calculateInvoiceTotal() {
-    // حساب إجمالي المنتجات فقط
-    const totals = [...document.getElementsByClassName('item-total')];
-    const productsTotal = totals.reduce((sum, input) => sum + (Number(input.value) || 0), 0);
-    
-    // عرض إجمالي المنتجات في حقل إجمالي الفاتورة
-    document.getElementById('totalAmount').value = productsTotal;
+            // حساب إجمالي المنتجات فقط
+            const totals = [...document.getElementsByClassName('item-total')];
+            const productsTotal = totals.reduce((sum, input) => sum + (Number(input.value) || 0), 0);
 
-    // إضافة قيمة التوصيل للإجمالي النهائي
-    const shippingCost = Number(document.getElementById('shippingCost').value) || 0;
-    const discount = Number(document.getElementById('discountAmount').value) || 0;
-    
-    // حساب الإجمالي النهائي (إجمالي المنتجات + قيمة التوصيل - الخصم)
-    const finalTotal = (productsTotal + shippingCost) - discount;
-    
-    document.getElementById('finalTotalAmount').value = finalTotal >= 0 ? finalTotal : 0;
-}
+            // عرض إجمالي المنتجات في حقل إجمالي الفاتورة
+            document.getElementById('totalAmount').value = productsTotal;
+
+            // إضافة قيمة التوصيل للإجمالي النهائي
+            const shippingCost = Number(document.getElementById('shippingCost').value) || 0;
+            const discount = Number(document.getElementById('discountAmount').value) || 0;
+
+            // حساب الإجمالي النهائي (إجمالي المنتجات + قيمة التوصيل - الخصم)
+            const finalTotal = (productsTotal + shippingCost) - discount;
+
+            document.getElementById('finalTotalAmount').value = finalTotal >= 0 ? finalTotal : 0;
+        }
         function deleteRow(button) {
             const row = button.parentElement.parentElement;
             row.remove();
@@ -2061,9 +2164,12 @@
             });
         }
 
-        function generateInvoiceNumber() {
-            return `#${String(invoiceCounter).padStart(4, '0')}`;
-        }
+        // تعديل دالة إنشاء رقم الفاتورة
+function generateInvoiceNumber() {
+    const lastNumber = getLastInvoiceNumber();
+    const newNumber = lastNumber + 1;
+    return `#${String(newNumber).padStart(4, '0')}`;
+}
 
         function clearInvoiceForm() {
             document.getElementById('customerName').value = '';
@@ -2076,10 +2182,10 @@
             document.getElementById('finalTotalAmount').value = '';
 
             // تفريغ قيمة التوصيل
-    document.getElementById('shippingCost').value = '0';
-    // إخفاء معلومات مدة التوصيل
-    document.querySelector('.delivery-info').style.display = 'none';
-    
+            document.getElementById('shippingCost').value = '0';
+            // إخفاء معلومات مدة التوصيل
+            document.querySelector('.delivery-info').style.display = 'none';
+
             addInvoiceItem();
         }
 
@@ -3779,9 +3885,121 @@
 
 
 
+        function showProfitsReport() {
+    const modal = document.getElementById('profitsModal');
+    const modalContent = modal.querySelector('.modal-content');
+    
+    // إضافة مربع البحث
+    if (!modalContent.querySelector('.search-box')) {
+        const searchBox = document.createElement('div');
+        searchBox.className = 'search-box';
+        searchBox.style.marginBottom = '20px';
+        searchBox.innerHTML = `
+            <input type="text" id="profitSearch" placeholder="البحث برقم الفاتورة" class="search-input">
+            <i class="fas fa-search search-icon"></i>
+        `;
+        modalContent.insertBefore(searchBox, modalContent.querySelector('table'));
+    }
+
+    const tbody = document.getElementById('profitsTableBody');
+    let totalValue = 0;
+    let totalProfit = 0;
+
+    // تصفية الفواتير المدفوعة فقط
+    const paidInvoices = invoices.filter(invoice => invoice.paid === true);
+
+    // تجميع بيانات الأرباح من الفواتير المدفوعة
+    const profitsData = paidInvoices
+        .map(invoice => {
+            // حساب إجمالي تكلفة الشراء
+            const totalBuyingCost = invoice.items.reduce((sum, item) => {
+                const product = products.find(p => p.name === item.name);
+                const buyPrice = product ? product.buyPrice : 0;
+                return sum + (buyPrice * item.quantity);
+            }, 0);
+
+            // حساب إجمالي سعر البيع
+            const totalSellingPrice = invoice.items.reduce((sum, item) => {
+                return sum + (item.price * item.quantity);
+            }, 0);
+
+            // الخصم من الفاتورة (إذا وجد)
+            const discount = invoice.discount || 0;
+
+            // صافي الربح بعد طرح الخصم
+            const profit = totalSellingPrice - totalBuyingCost - discount;
+
+            return {
+                invoiceNumber: invoice.number,
+                totalBuying: totalBuyingCost,
+                totalSelling: totalSellingPrice,
+                discount: discount,
+                profit: profit
+            };
+        })
+        // تصفية الفواتير التي لها تكلفة شراء أكبر من صفر فقط
+        .filter(data => data.totalBuying > 0);
+
+    // تحديث الإجماليات
+    profitsData.forEach(data => {
+        totalValue += data.totalSelling;
+        totalProfit += data.profit;
+    });
+
+    // عرض البيانات في الجدول
+    tbody.innerHTML = profitsData.map(data => `
+        <tr data-invoice-number="${data.invoiceNumber}">
+            <td>${data.invoiceNumber}</td>
+            <td>${data.totalBuying.toFixed(2)} ج.م</td>
+            <td>${data.totalSelling.toFixed(2)} ج.م</td>
+            <td>${data.discount.toFixed(2)} ج.م</td>
+            <td>${data.profit.toFixed(2)} ج.م</td>
+        </tr>
+    `).join('');
+
+    // تحديث الإجماليات في التذييل
+    document.getElementById('totalBuying').textContent = profitsData.reduce((sum, data) => sum + data.totalBuying, 0).toFixed(2) + ' ج.م';
+    document.getElementById('totalValue').textContent = totalValue.toFixed(2) + ' ج.م';
+    document.getElementById('totalProfit').textContent = totalProfit.toFixed(2) + ' ج.م';
+
+    // إضافة وظيفة البحث
+    setupProfitSearch();
+
+    modal.style.display = 'block';
+}
 
 
 
+
+
+
+
+        // دالة البحث في جدول الأرباح
+        function setupProfitSearch() {
+            const searchInput = document.getElementById('profitSearch');
+            if (!searchInput) return;
+
+            searchInput.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase().trim();
+                const rows = document.querySelectorAll('#profitsTableBody tr');
+
+                rows.forEach(row => {
+                    const invoiceNumber = row.getAttribute('data-invoice-number').toLowerCase();
+                    if (invoiceNumber.includes(searchTerm)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function closeProfitsModal() {
+            const modal = document.getElementById('profitsModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
 
 
 
