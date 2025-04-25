@@ -1112,6 +1112,82 @@
         .profits-table tfoot td {
             border-top: 2px solid #ddd;
         }
+
+
+
+        .profits-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.profits-pagination button {
+    padding: 8px 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.profits-pagination button:hover {
+    background: #2980b9;
+}
+
+.profits-pagination button:disabled {
+    background: #bdc3c7;
+    cursor: not-allowed;
+}
+
+.profits-pagination span {
+    color: #2c3e50;
+    font-weight: bold;
+}
+
+
+
+.filter-controls {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.date-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.filter-btn {
+    padding: 8px 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.filter-btn:hover {
+    background: #2980b9;
+}
+
+.filter-btn i {
+    margin-right: 5px;
+}
+
+
+
+
+
+
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -1167,74 +1243,74 @@
 
         // تحميل البيانات عند بدء التطبيق
         // تحميل البيانات عند بدء التطبيق
-window.onload = async function () {
-    try {
-        // تحميل البيانات من Firebase
-        const [savedRates, savedInvoices, savedProducts, savedClients] = await Promise.all([
-            firebaseHelper.getData('shippingRates'),
-            firebaseHelper.getData('invoices'),
-            firebaseHelper.getData('products'),
-            firebaseHelper.getData('clients')
-        ]);
+        window.onload = async function () {
+            try {
+                // تحميل البيانات من Firebase
+                const [savedRates, savedInvoices, savedProducts, savedClients] = await Promise.all([
+                    firebaseHelper.getData('shippingRates'),
+                    firebaseHelper.getData('invoices'),
+                    firebaseHelper.getData('products'),
+                    firebaseHelper.getData('clients')
+                ]);
 
-        // تحميل أسعار الشحن
-        if (savedRates) {
-            shippingRates = savedRates;
-        }
+                // تحميل أسعار الشحن
+                if (savedRates) {
+                    shippingRates = savedRates;
+                }
 
-        // تحميل الفواتير
-        if (savedInvoices) {
-            invoices = savedInvoices;
-            // تحديث رقم آخر فاتورة
-            const lastNumber = getLastInvoiceNumber();
-            invoiceCounter = lastNumber + 1;
-            updateInvoicesTable();
-        }
+                // تحميل الفواتير
+                if (savedInvoices) {
+                    invoices = savedInvoices;
+                    // تحديث رقم آخر فاتورة
+                    const lastNumber = getLastInvoiceNumber();
+                    invoiceCounter = lastNumber + 1;
+                    updateInvoicesTable();
+                }
 
-        // تحميل المنتجات
-        if (savedProducts) {
-            products = savedProducts;
-            updateProductsList();
-        }
+                // تحميل المنتجات
+                if (savedProducts) {
+                    products = savedProducts;
+                    updateProductsList();
+                }
 
-        // تحميل العملاء
-        if (savedClients) {
-            clients = savedClients;
-            updateClientsList();
-        }
+                // تحميل العملاء
+                if (savedClients) {
+                    clients = savedClients;
+                    updateClientsList();
+                }
 
-        // مراقبة التغييرات في الفواتير
-        database.ref('invoices').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                invoices = data;
-                updateInvoicesTable();
-                updateShipmentsTable();
+                // مراقبة التغييرات في الفواتير
+                database.ref('invoices').on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        invoices = data;
+                        updateInvoicesTable();
+                        updateShipmentsTable();
+                    }
+                });
+
+                // تحديث جدول الشحنات إذا كان قسم الشحنات مفتوحاً
+                if (document.getElementById('shipping').classList.contains('active')) {
+                    updateShipmentsTable();
+                }
+
+                // عرض قسم الفواتير افتراضياً
+                showSection('invoices');
+
+                // تهيئة نظام الإشعارات
+                initNotifications();
+
+                console.log('تم تحميل البيانات بنجاح');
+
+            } catch (error) {
+                console.error('خطأ في تحميل البيانات:', error);
+                addNotification(
+                    'خطأ في التحميل',
+                    'حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة',
+                    'error'
+                );
             }
-        });
-
-        // تحديث جدول الشحنات إذا كان قسم الشحنات مفتوحاً
-        if (document.getElementById('shipping').classList.contains('active')) {
-            updateShipmentsTable();
-        }
-
-        // عرض قسم الفواتير افتراضياً
-        showSection('invoices');
-
-        // تهيئة نظام الإشعارات
-        initNotifications();
-
-        console.log('تم تحميل البيانات بنجاح');
-
-    } catch (error) {
-        console.error('خطأ في تحميل البيانات:', error);
-        addNotification(
-            'خطأ في التحميل',
-            'حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة',
-            'error'
-        );
-    }
-};
+        };
     </script>
     <script>
         // دالة لتقسيم الصفحات
@@ -1804,45 +1880,45 @@ window.onload = async function () {
 
 
         // تعديل دالة toggleInvoiceForm
-function toggleInvoiceForm() {
-    const modal = document.getElementById('invoiceModal');
-    modal.style.display = 'block';
-    
-    // استخدام الدالة المحدثة لتوليد رقم الفاتورة
-    document.getElementById('invoiceNumber').value = generateInvoiceNumber();
-    document.getElementById('invoiceDate').value = new Date().toLocaleDateString('ar-EG');
-    clearInvoiceForm();
+        function toggleInvoiceForm() {
+            const modal = document.getElementById('invoiceModal');
+            modal.style.display = 'block';
 
-    // إضافة مستمع حدث لتغيير المحافظة
-    document.getElementById('governorate').addEventListener('change', function() {
-        updateShippingCost(this.value);
-    });
+            // استخدام الدالة المحدثة لتوليد رقم الفاتورة
+            document.getElementById('invoiceNumber').value = generateInvoiceNumber();
+            document.getElementById('invoiceDate').value = new Date().toLocaleDateString('ar-EG');
+            clearInvoiceForm();
 
-    // إعداد الاقتراحات لاسم العميل
-    setupAutoComplete('customerName', clients, 'name', (client) => {
-        if (client) {
-            document.getElementById('phone').value = client.phone;
-            document.getElementById('governorate').value = client.governorate;
-            document.getElementById('address').value = client.address;
-            updateShippingCost(client.governorate);
+            // إضافة مستمع حدث لتغيير المحافظة
+            document.getElementById('governorate').addEventListener('change', function () {
+                updateShippingCost(this.value);
+            });
+
+            // إعداد الاقتراحات لاسم العميل
+            setupAutoComplete('customerName', clients, 'name', (client) => {
+                if (client) {
+                    document.getElementById('phone').value = client.phone;
+                    document.getElementById('governorate').value = client.governorate;
+                    document.getElementById('address').value = client.address;
+                    updateShippingCost(client.governorate);
+                }
+            });
         }
-    });
-}
 
 
 
 
-// دالة للحصول على آخر رقم فاتورة
-function getLastInvoiceNumber() {
-    if (!invoices || invoices.length === 0) return 0;
-    
-    // البحث عن أكبر رقم فاتورة
-    const lastNumber = invoices
-        .map(inv => parseInt(inv.number.replace('#', '')))
-        .reduce((max, current) => Math.max(max, current), 0);
-    
-    return lastNumber;
-}
+        // دالة للحصول على آخر رقم فاتورة
+        function getLastInvoiceNumber() {
+            if (!invoices || invoices.length === 0) return 0;
+
+            // البحث عن أكبر رقم فاتورة
+            const lastNumber = invoices
+                .map(inv => parseInt(inv.number.replace('#', '')))
+                .reduce((max, current) => Math.max(max, current), 0);
+
+            return lastNumber;
+        }
 
         function closeInvoiceModal() {
             document.getElementById('invoiceModal').style.display = 'none';
@@ -2165,11 +2241,11 @@ function getLastInvoiceNumber() {
         }
 
         // تعديل دالة إنشاء رقم الفاتورة
-function generateInvoiceNumber() {
-    const lastNumber = getLastInvoiceNumber();
-    const newNumber = lastNumber + 1;
-    return `#${String(newNumber).padStart(4, '0')}`;
-}
+        function generateInvoiceNumber() {
+            const lastNumber = getLastInvoiceNumber();
+            const newNumber = lastNumber + 1;
+            return `#${String(newNumber).padStart(4, '0')}`;
+        }
 
         function clearInvoiceForm() {
             document.getElementById('customerName').value = '';
@@ -2243,7 +2319,7 @@ function generateInvoiceNumber() {
             document.getElementById('buyPrice').value = '';
             document.getElementById('sellPrice').value = '';
             document.getElementById('quantity').value = '';
-            document.getElementById('imagePreview').src = 'https://via.placeholder.com/150'; // أو الصورة الافتراضية اللي عندك
+            document.getElementById('imagePreview').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
 
             const modal = document.getElementById('productModal');
             if (modal && modal.dataset.editingId) {
@@ -3051,6 +3127,7 @@ function generateInvoiceNumber() {
     `;
 
             // عرض الصفحة الأولى من المنتجات
+            
             paginateProducts(1);
 
             // إضافة وظيفة البحث
@@ -3064,13 +3141,19 @@ function generateInvoiceNumber() {
             const start = (pageNumber - 1) * productsPerPage;
             const end = start + productsPerPage;
 
+            const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
+
+
+
             tbody.innerHTML = products.slice(start, end).map(product => `
         <tr data-product-name="${product.name}">
             <td>
                 <img src="${product.image}" 
                      style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
                      onclick="showProductImage('${product.image}')"
+                     onerror="this.src='${defaultImage}'"
                      title="انقر لتكبير الصورة">
+                     
             </td>
             <td>${product.name}</td>
             <td>${product.buyPrice}</td>
@@ -3402,6 +3485,9 @@ function generateInvoiceNumber() {
                     return;
                 }
 
+                const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
+
+
                 // تجهيز بيانات المنتج
                 const productData = {
                     id: Date.now(),
@@ -3409,7 +3495,7 @@ function generateInvoiceNumber() {
                     buyPrice: buyPrice,
                     sellPrice: sellPrice,
                     quantity: quantity,
-                    image: imagePreview.src || 'https://via.placeholder.com/150'
+                    image: imagePreview.src || defaultImage
                 };
 
                 const editingId = document.getElementById('productModal').dataset.editingId;
@@ -3888,7 +3974,7 @@ function generateInvoiceNumber() {
         function showProfitsReport() {
     const modal = document.getElementById('profitsModal');
     const modalContent = modal.querySelector('.modal-content');
-    
+
     // إضافة مربع البحث
     if (!modalContent.querySelector('.search-box')) {
         const searchBox = document.createElement('div');
@@ -3901,53 +3987,293 @@ function generateInvoiceNumber() {
         modalContent.insertBefore(searchBox, modalContent.querySelector('table'));
     }
 
-    const tbody = document.getElementById('profitsTableBody');
-    let totalValue = 0;
-    let totalProfit = 0;
+     // إضافة مربع البحث وفلتر التاريخ
+     if (!modalContent.querySelector('.filter-controls')) {
+        const filterControls = document.createElement('div');
+        filterControls.className = 'filter-controls';
+        filterControls.style.marginBottom = '20px';
+        filterControls.innerHTML = `
+            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px;">
+                
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <label>من:</label>
+                    <input type="date" id="startDate" class="date-input">
+                    <label>إلى:</label>
+                    <input type="date" id="endDate" class="date-input">
+                    <button onclick="filterProfitsByDate()" class="filter-btn">
+                        <i class="fas fa-filter"></i> تصفية
+                    </button>
+                    <button onclick="resetProfitsFilter()" class="filter-btn" title="إعادة تعيين">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+                </div>
+            </div>
+        `;
+        modalContent.insertBefore(filterControls, modalContent.querySelector('table'));
+    }
+
+    // التحقق من وجود الفواتير
+    if (!invoices || invoices.length === 0) {
+        document.getElementById('profitsTableBody').innerHTML = '<tr><td colspan="5">لا توجد فواتير</td></tr>';
+        return;
+    }
 
     // تصفية الفواتير المدفوعة فقط
     const paidInvoices = invoices.filter(invoice => invoice.paid === true);
 
-    // تجميع بيانات الأرباح من الفواتير المدفوعة
-    const profitsData = paidInvoices
+    // التحقق من وجود فواتير مدفوعة
+    if (paidInvoices.length === 0) {
+        document.getElementById('profitsTableBody').innerHTML = '<tr><td colspan="5">لا توجد فواتير مدفوعة</td></tr>';
+        return;
+    }
+
+    // تجميع بيانات الأرباح
+    window.profitsTableData = paidInvoices
         .map(invoice => {
-            // حساب إجمالي تكلفة الشراء
-            const totalBuyingCost = invoice.items.reduce((sum, item) => {
-                const product = products.find(p => p.name === item.name);
-                const buyPrice = product ? product.buyPrice : 0;
-                return sum + (buyPrice * item.quantity);
-            }, 0);
+            try {
+                // حساب إجمالي تكلفة الشراء
+                const totalBuyingCost = invoice.items.reduce((sum, item) => {
+                    const product = products.find(p => p.name === item.name);
+                    const buyPrice = product ? product.buyPrice : 0;
+                    return sum + (buyPrice * item.quantity);
+                }, 0);
 
-            // حساب إجمالي سعر البيع
-            const totalSellingPrice = invoice.items.reduce((sum, item) => {
-                return sum + (item.price * item.quantity);
-            }, 0);
+                // حساب إجمالي سعر البيع
+                const totalSellingPrice = invoice.items.reduce((sum, item) => {
+                    return sum + (item.price * item.quantity);
+                }, 0);
 
-            // الخصم من الفاتورة (إذا وجد)
-            const discount = invoice.discount || 0;
+                const discount = invoice.discount || 0;
+                const profit = totalSellingPrice - totalBuyingCost - discount;
 
-            // صافي الربح بعد طرح الخصم
-            const profit = totalSellingPrice - totalBuyingCost - discount;
-
-            return {
-                invoiceNumber: invoice.number,
-                totalBuying: totalBuyingCost,
-                totalSelling: totalSellingPrice,
-                discount: discount,
-                profit: profit
-            };
+                return {
+                    invoiceNumber: invoice.number,
+                    totalBuying: totalBuyingCost,
+                    totalSelling: totalSellingPrice,
+                    discount: discount,
+                    profit: profit
+                };
+            } catch (error) {
+                console.error('خطأ في معالجة الفاتورة:', invoice.number, error);
+                return null;
+            }
         })
-        // تصفية الفواتير التي لها تكلفة شراء أكبر من صفر فقط
-        .filter(data => data.totalBuying > 0);
+        .filter(data => data !== null && data.totalBuying > 0);
 
-    // تحديث الإجماليات
-    profitsData.forEach(data => {
-        totalValue += data.totalSelling;
-        totalProfit += data.profit;
+    // التحقق من وجود بيانات أرباح
+    if (window.profitsTableData.length === 0) {
+        document.getElementById('profitsTableBody').innerHTML = '<tr><td colspan="5">لا توجد بيانات أرباح متاحة</td></tr>';
+        return;
+    }
+
+    // إضافة عناصر التنقل بين الصفحات
+    if (!modalContent.querySelector('.profits-pagination')) {
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'profits-pagination pagination-controls';
+        modalContent.appendChild(paginationDiv);
+    }
+
+    // عرض الصفحة الأولى
+    paginateProfitsTable(1);
+
+    // إضافة وظيفة البحث
+    setupProfitSearch();
+
+    // عرض النافذة المنبثقة
+    modal.style.display = 'block';
+}
+
+
+// إضافة دالة جديدة لإعادة تعيين الفلتر
+function resetProfitsFilter() {
+    // إعادة تعيين حقول التاريخ
+    document.getElementById('startDate').value = '';
+    document.getElementById('endDate').value = '';
+    
+    // إعادة تحميل كل البيانات
+    const paidInvoices = invoices.filter(invoice => invoice.paid === true);
+    updateProfitsTable(paidInvoices);
+    
+    // إضافة تأثير دوران للأيقونة
+    const resetIcon = document.querySelector('.fa-sync-alt');
+    resetIcon.style.animation = 'spin 1s linear';
+    
+    // إزالة الأنيميشن بعد اكتمالها
+    setTimeout(() => {
+        resetIcon.style.animation = '';
+    }, 1000);
+}
+
+
+// دالة لفلترة الأرباح حسب التاريخ
+function filterProfitsByDate() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    // التحقق من إدخال التواريخ
+    if (!startDate || !endDate) {
+        alert('الرجاء اختيار تواريخ صحيحة');
+        return;
+    }
+
+    // تحويل التواريخ إلى تنسيق قابل للمقارنة
+    const startParts = startDate.split('-');
+    const endParts = endDate.split('-');
+    
+    const startDateObj = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+    const endDateObj = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+    endDateObj.setHours(23, 59, 59);
+
+    // فلترة الفواتير حسب التاريخ
+    const filteredInvoices = invoices.filter(invoice => {
+        try {
+            // تحويل تاريخ الفاتورة (DD/MM/YYYY) إلى كائن Date
+            const [day, month, year] = invoice.date.split('/');
+            const invoiceDate = new Date(year, month - 1, day);
+            
+            // للتحقق من عملية التحويل
+            console.log({
+                invoiceDate: invoiceDate.toISOString(),
+                invoiceNumber: invoice.number,
+                startDate: startDateObj.toISOString(),
+                endDate: endDateObj.toISOString()
+            });
+
+            return invoice.paid && 
+                   invoiceDate >= startDateObj && 
+                   invoiceDate <= endDateObj;
+        } catch (error) {
+            console.error('خطأ في معالجة تاريخ الفاتورة:', invoice.date, error);
+            return false;
+        }
     });
 
-    // عرض البيانات في الجدول
-    tbody.innerHTML = profitsData.map(data => `
+    console.log('Filtered Invoices:', filteredInvoices.length);
+    updateProfitsTable(filteredInvoices);
+}
+
+function filterProfitsByDate() {
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
+
+    // التحقق من إدخال التواريخ
+    if (!startDate || !endDate) {
+        alert('الرجاء اختيار تواريخ صحيحة');
+        return;
+    }
+
+    // تحويل تواريخ الفلتر إلى كائنات Date
+    const startDateObj = new Date(startDate);
+    const endDateObj = new Date(endDate);
+    endDateObj.setHours(23, 59, 59);
+
+    // فلترة الفواتير حسب التاريخ
+    const filteredInvoices = invoices.filter(invoice => {
+        try {
+            // تحويل تاريخ الفاتورة من DD/MM/YYYY إلى كائن Date
+            const [day, month, year] = invoice.date.split('/');
+            const invoiceDate = new Date(
+                parseInt(year),
+                parseInt(month) - 1, // الشهر يبدأ من 0
+                parseInt(day)
+            );
+            invoiceDate.setHours(0, 0, 0, 0);
+
+            // للتحقق من صحة التحويل
+            console.log({
+                invoice: invoice.number,
+                invoiceDate: invoiceDate.toISOString(),
+                startDate: startDateObj.toISOString(),
+                endDate: endDateObj.toISOString(),
+                isWithinRange: invoiceDate >= startDateObj && invoiceDate <= endDateObj
+            });
+
+            return invoice.paid && 
+                   invoiceDate >= startDateObj && 
+                   invoiceDate <= endDateObj;
+        } catch (error) {
+            console.error('خطأ في معالجة تاريخ الفاتورة:', invoice.date, error);
+            return false;
+        }
+    });
+
+    console.log('عدد الفواتير المفلترة:', filteredInvoices.length);
+    updateProfitsTable(filteredInvoices);
+
+
+
+
+
+
+
+
+}
+
+
+
+
+// دالة لتحديث جدول الأرباح
+function updateProfitsTable(filteredInvoices) {
+    // تجميع بيانات الأرباح للفواتير المفلترة
+    window.profitsTableData = filteredInvoices
+        .map(invoice => {
+            try {
+                const totalBuyingCost = invoice.items.reduce((sum, item) => {
+                    const product = products.find(p => p.name === item.name);
+                    const buyPrice = product ? product.buyPrice : 0;
+                    return sum + (buyPrice * item.quantity);
+                }, 0);
+
+                const totalSellingPrice = invoice.items.reduce((sum, item) => {
+                    return sum + (item.price * item.quantity);
+                }, 0);
+
+                const discount = invoice.discount || 0;
+                const profit = totalSellingPrice - totalBuyingCost - discount;
+
+                return {
+                    invoiceNumber: invoice.number,
+                    totalBuying: totalBuyingCost,
+                    totalSelling: totalSellingPrice,
+                    discount: discount,
+                    profit: profit
+                };
+            } catch (error) {
+                console.error('خطأ في معالجة الفاتورة:', invoice.number, error);
+                return null;
+            }
+        })
+        .filter(data => data !== null && data.totalBuying > 0);
+
+    // عرض رسالة إذا لم توجد نتائج
+    if (window.profitsTableData.length === 0) {
+        document.getElementById('profitsTableBody').innerHTML = 
+            '<tr><td colspan="5">لا توجد بيانات أرباح في الفترة المحددة</td></tr>';
+        return;
+    }
+
+    // عرض الصفحة الأولى من النتائج المفلترة
+    paginateProfitsTable(1);
+}
+
+
+
+
+
+
+
+
+function paginateProfitsTable(pageNumber) {
+    const itemsPerPage = 10;
+    const tbody = document.getElementById('profitsTableBody');
+    const data = window.profitsTableData;
+    const totalPages = Math.ceil(data.length / itemsPerPage);
+    const start = (pageNumber - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+
+    // عرض البيانات للصفحة الحالية
+    const pageData = data.slice(start, end);
+    tbody.innerHTML = pageData.map(data => `
         <tr data-invoice-number="${data.invoiceNumber}">
             <td>${data.invoiceNumber}</td>
             <td>${data.totalBuying.toFixed(2)} ج.م</td>
@@ -3957,16 +4283,38 @@ function generateInvoiceNumber() {
         </tr>
     `).join('');
 
-    // تحديث الإجماليات في التذييل
-    document.getElementById('totalBuying').textContent = profitsData.reduce((sum, data) => sum + data.totalBuying, 0).toFixed(2) + ' ج.م';
-    document.getElementById('totalValue').textContent = totalValue.toFixed(2) + ' ج.م';
-    document.getElementById('totalProfit').textContent = totalProfit.toFixed(2) + ' ج.م';
+    // تحديث الإجماليات
+    updateProfitsTotals(window.profitsTableData);
 
-    // إضافة وظيفة البحث
-    setupProfitSearch();
-
-    modal.style.display = 'block';
+    // تحديث أزرار التنقل
+    const paginationDiv = document.querySelector('.profits-pagination');
+    paginationDiv.innerHTML = `
+        <button onclick="paginateProfitsTable(${pageNumber - 1})" 
+                ${pageNumber === 1 ? 'disabled' : ''}>
+            السابق
+        </button>
+        <span>صفحة ${pageNumber} من ${totalPages}</span>
+        <button onclick="paginateProfitsTable(${pageNumber + 1})" 
+                ${pageNumber === totalPages ? 'disabled' : ''}>
+            التالي
+        </button>
+    `;
 }
+
+
+        function updateProfitsTotals(data) {
+    const totalBuying = data.reduce((sum, item) => sum + item.totalBuying, 0);
+    const totalSelling = data.reduce((sum, item) => sum + item.totalSelling, 0);
+    const totalDiscount = data.reduce((sum, item) => sum + item.discount, 0);
+    const totalProfit = data.reduce((sum, item) => sum + item.profit, 0);
+
+    document.getElementById('totalBuying').textContent = totalBuying.toFixed(2) + ' ج.م';
+    document.getElementById('totalValue').textContent = totalSelling.toFixed(2) + ' ج.م';
+    document.getElementById('totalDiscount').textContent = totalDiscount.toFixed(2) + ' ج.م';
+    document.getElementById('totalProfit').textContent = totalProfit.toFixed(2) + ' ج.م';
+}
+
+
 
 
 
