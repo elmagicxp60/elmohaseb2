@@ -2104,7 +2104,8 @@
     });
 
 
-            
+
+
         }
 
         function printReceipt() {
@@ -4361,7 +4362,23 @@ function paginateProfitsTable(pageNumber) {
         }
 
 
-         // إضافة مستمع حدث لكل نموذج
+
+
+
+        // إضافة مستمعات الأحداث لجميع النماذج
+document.addEventListener('DOMContentLoaded', () => {
+    // قائمة بجميع النماذج في التطبيق
+    const modals = [
+        'invoiceModal',
+        'productModal',
+        'clientModal',
+        'profitsModal',
+        'shippingSettingsModal',
+        'qrModal',
+        'detailsModal'
+    ];
+
+    // إضافة مستمع حدث لكل نموذج
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (modal) {
@@ -4395,7 +4412,6 @@ function paginateProfitsTable(pageNumber) {
         }
     });
 });
-
 
 
 
