@@ -52,7 +52,7 @@
 
         .sidebar {
             width: 280px;
-            height: 100vh;
+            height: 200vh;
             background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
             padding: 25px;
             box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
@@ -295,7 +295,8 @@
         }
 
         .shipped {
-            background-color: #a6e3c0 !important;
+            background-color: rgba(34, 220, 43, 0.2); /* أحمر شفاف بنسبة 50% */
+
         }
 
         .receipt-style {
@@ -484,6 +485,7 @@
 
         .paid-btn {
             background: #27ae60;
+            
         }
 
         .shipping-row-cancelled {
@@ -1032,57 +1034,45 @@
 
 
 
+        /*إضافة CSS لتنسيق شارات الحالة*/
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    min-width: 55px;
+    color: white;
+}
+
+.status-pending {
+    background-color: #f1c40f;
+    border: 1px solid #f39c12;
+}
+
+.status-delivered {
+    background-color: #2ecc71;
+    border: 1px solid #27ae60;
+}
+
+.status-cancelled {
+    background-color: #e74c3c;
+    border: 1px solid #c0392b;
+}
+
+.status-returned {
+    background-color: #e67e22;
+    border: 1px solid #d35400;
+}
+
+.status-paid {
+    background-color: #3498db;
+    border: 1px solid #2980b9;
+}
 
 
-
-
-        .status-badge {
-            display: inline-block;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: bold;
-            margin-right: 5px;
-            min-width: 60px;
-            text-align: center;
-        }
-
-        .status-pending {
-            background-color: #f1c40f;
-            color: white;
-            border: 1px solid #f39c12;
-        }
-
-        .status-delivered {
-            background-color: #2ecc71;
-            color: white;
-            border: 1px solid #27ae60;
-        }
-
-        .status-cancelled {
-            background-color: #e74c3c;
-            color: white;
-            border: 1px solid #c0392b;
-        }
-
-        .status-returned {
-            background-color: #e67e22;
-            color: white;
-            border: 1px solid #d35400;
-        }
-
-        .status-paid {
-            background-color: #3498db;
-            color: white;
-            border: 1px solid #2980b9;
-        }
-
-        /* تأثير الحركة عند المرور بالمؤشر */
-        .status-badge:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
 
 
 
@@ -3009,20 +2999,41 @@
 
 
         // دالة لتقسيم الصفحات
-        function paginateInvoices(pageNumber) {
-            const invoicesPerPage = 10;
-            const tbody = document.getElementById('invoicesTable').querySelector('tbody');
-            const totalPages = Math.ceil(invoices.length / invoicesPerPage);
-            const start = (pageNumber - 1) * invoicesPerPage;
-            const end = start + invoicesPerPage;
+        // تعديل دالة paginateInvoices لإضافة عمود الحالة
+function paginateInvoices(pageNumber) {
+    const invoicesPerPage = 10;
+    const tbody = document.getElementById('invoicesTable').querySelector('tbody');
+    const totalPages = Math.ceil(invoices.length / invoicesPerPage);
+    const start = (pageNumber - 1) * invoicesPerPage;
+    const end = start + invoicesPerPage;
 
-            // عرض الفواتير للصفحة الحالية
-            tbody.innerHTML = invoices.slice(start, end).map((inv, index) => `
-        <tr class="${inv.shipped ? 'shipped' : ''}" data-invoice-number="${inv.number}" data-customer-name="${inv.customer}">
+    // تعديل header الجدول لإضافة عمود الحالة
+    const thead = document.getElementById('invoicesTable').querySelector('thead');
+    thead.innerHTML = `
+        <tr>
+            <th>رقم الفاتورة</th>
+            <th>التاريخ</th>
+            <th>اسم العميل</th>
+            <th>الإجمالي</th>
+            <th>الحالة</th>
+            <th>الإجراءات</th>
+        </tr>
+    `;
+
+    // عرض الفواتير للصفحة الحالية مع إضافة خانة الحالة
+    tbody.innerHTML = invoices.slice(start, end).map((inv, index) => `
+        <tr class="${inv.shipped ? 'shipped' : ''}" 
+            data-invoice-number="${inv.number}" 
+            data-customer-name="${inv.customer}">
             <td>${inv.number}</td>
             <td>${inv.date}</td>
             <td>${inv.customer}</td>
             <td>${inv.total}</td>
+            <td>
+                <span class="status-badge ${getInvoiceStatusClass(inv)}">
+                    ${getInvoiceStatusText(inv)}
+                </span>
+            </td>
             <td>
                 <button class="action-btn details-btn" onclick="showInvoiceDetails(${start + index})" title="عرض التفاصيل">
                     <i class="fas fa-eye"></i>
@@ -3033,21 +3044,17 @@
                 <button class="action-btn delete-invoice-btn" onclick="deleteInvoice(${start + index})" title="حذف">
                     <i class="fas fa-trash"></i>
                 </button>
-                <button class="action-btn ship-btn" onclick="shipInvoice(${start + index})" ${inv.shipped ? 'disabled' : ''} title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
+                <button class="action-btn ship-btn" onclick="shipInvoice(${start + index})" 
+                    ${inv.shipped ? 'disabled' : ''} 
+                    title="${inv.shipped ? 'تم الشحن' : 'شحن'}">
                     <i class="fas fa-truck${inv.shipped ? '-loading' : ''}"></i>
                 </button>
-                ${inv.shipped ? `
-                    <span class="status-badge ${getInvoiceStatusClass(inv)}">
-                        ${getInvoiceStatusText(inv)}
-                    </span>
-                ` : ''}
             </td>
         </tr>
     `).join('');
 
-            // تحديث أزرار التنقل
-            updatePaginationControls(pageNumber, totalPages);
-        }
+    updatePaginationControls(pageNumber, totalPages);
+}
 
 
 
@@ -3056,23 +3063,25 @@
 
 
 
-        function getInvoiceStatusText(invoice) {
-            if (!invoice.shipped) return 'قيد الانتظار';
-            if (invoice.paid) return 'مدفوعة';  // تحريك هذا الشرط للأعلى
-            if (invoice.status === 'delivered') return 'تم التسليم';
-            if (invoice.status === 'cancelled') return 'ملغاة';
-            if (invoice.status === 'returned') return 'مرتجعة';
-            return 'قيد التسليم';
-        }
+ // تحديث دالة getInvoiceStatusText
+function getInvoiceStatusText(invoice) {
+    if (!invoice.shipped) return 'جديدة';
+    if (invoice.status === 'delivered') return 'تم التسليم';
+    if (invoice.status === 'cancelled') return 'ملغاة';
+    if (invoice.status === 'returned') return 'مرتجعة';
+    if (invoice.paid) return 'مدفوعة';
+    return 'قيد التسليم';
+}
 
-        function getInvoiceStatusClass(invoice) {
-            if (!invoice.shipped) return 'status-pending';
-            if (invoice.status === 'delivered') return 'status-delivered';
-            if (invoice.status === 'cancelled') return 'status-cancelled';
-            if (invoice.status === 'returned') return 'status-returned';
-            if (invoice.paid) return 'status-paid';
-            return 'status-pending';
-        }
+        // تحديث دالة getInvoiceStatusClass
+function getInvoiceStatusClass(invoice) {
+    if (!invoice.shipped) return 'status-pending';
+    if (invoice.status === 'delivered') return 'status-delivered';
+    if (invoice.status === 'cancelled') return 'status-cancelled';
+    if (invoice.status === 'returned') return 'status-returned';
+    if (invoice.paid) return 'status-paid';
+    return 'status-pending';
+}
 
 
 
