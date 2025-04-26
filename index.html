@@ -2094,6 +2094,17 @@
             `;
             document.body.appendChild(detailsModal);
             detailsModal.style.display = 'block';
+
+            // إضافة مستمع حدث للنقر
+    detailsModal.addEventListener('click', (event) => {
+        // إذا تم النقر على الخلفية وليس على المحتوى
+        if (event.target === detailsModal) {
+            detailsModal.remove();
+        }
+    });
+
+
+            
         }
 
         function printReceipt() {
@@ -4348,6 +4359,42 @@ function paginateProfitsTable(pageNumber) {
                 modal.style.display = 'none';
             }
         }
+
+
+         // إضافة مستمع حدث لكل نموذج
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.addEventListener('click', (event) => {
+                // إذا تم النقر على الخلفية (وليس على المحتوى)
+                if (event.target === modal) {
+                    // إغلاق النموذج
+                    modal.style.display = 'none';
+                    
+                    // إذا كان النموذج هو نموذج الفاتورة، قم بتنظيف النموذج
+                    if (modalId === 'invoiceModal') {
+                        clearInvoiceForm();
+                    }
+                    // إذا كان النموذج هو نموذج المنتج، قم بتنظيف النموذج
+                    else if (modalId === 'productModal') {
+                        clearProductForm();
+                    }
+                    // إذا كان النموذج هو نموذج العميل، قم بتنظيف النموذج
+                    else if (modalId === 'clientModal') {
+                        clearClientForm();
+                    }
+                }
+            });
+        }
+    });
+
+    // إضافة معالج خاص للنوافذ المنبثقة الديناميكية
+    document.addEventListener('click', (event) => {
+        if (event.target.classList.contains('large-image-modal')) {
+            event.target.remove();
+        }
+    });
+});
 
 
 
