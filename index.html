@@ -1543,6 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         <!-- تعديل قسم الرئيسية في HTML-->
+
 <div id="home" class="section-content">
     <h2 class="section-title">الرئيسية</h2>
     <div class="dashboard-cards">
@@ -2001,40 +2002,84 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         function showSection(sectionId) {
-            // إخفاء جميع الأقسام
-            const sections = document.getElementsByClassName('section-content');
-            for (let section of sections) {
-                section.classList.remove('active');
-            }
+    // إخفاء جميع الأقسام
+    const sections = document.getElementsByClassName('section-content');
+    for (let section of sections) {
+        section.classList.remove('active');
+    }
 
-            // إظهار القسم المحدد
-            document.getElementById(sectionId).classList.add('active');
-
-            // تحديث جدول الشحنات عند الانتقال إلى قسم الشحنات
-            if (sectionId === 'shipping') {
-                // إنشاء جدول الشحنات إذا لم يكن موجوداً
+    // إظهار القسم المحدد
+    document.getElementById(sectionId).classList.add('active');
+    
+    // تحديث القسم المناسب حسب الاختيار
+    switch(sectionId) {
+        case 'home':
+            updateHomeStats();
+            break;
+        case 'invoices':
+            updateInvoicesTable();
+            break;
+        case 'products':
+            updateProductsList();
+            break;
+        case 'clients':
+            updateClientsList();
+            break;
+        case 'shipping':
+            if (!document.getElementById('shipmentsTable')) {
                 const shipmentsSection = document.getElementById('shipping');
-                if (!document.getElementById('shipmentsTable')) {
-                    shipmentsSection.innerHTML = `
-                <h2 class="section-title">قسم الشحنات</h2>
-                <table id="shipmentsTable" class="invoice-table">
-                    <thead>
-                        <tr>
-                            <th>رقم الفاتورة</th>
-                            <th>التاريخ</th>
-                            <th>اسم العميل</th>
-                            <th>العنوان</th>
-                            <th>الإجمالي</th>
-                            <th>الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-            `;
-                }
-                updateShipmentsTable();
+                shipmentsSection.innerHTML = `
+                    <h2 class="section-title">قسم الشحنات</h2>
+                    <table id="shipmentsTable" class="invoice-table">
+                        <thead>
+                            <tr>
+                                <th>رقم الفاتورة</th>
+                                <th>التاريخ</th>
+                                <th>اسم العميل</th>
+                                <th>العنوان</th>
+                                <th>الإجمالي</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                `;
             }
-        }
+            updateShipmentsTable();
+            break;
+    }
+}
+
+
+
+// أيضاً نقوم بتعديل مستمع تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    showSection('home'); // عرض الصفحة الرئيسية مباشرة
+    initNotifications();
+    
+    // تحميل البيانات من Firebase
+    Promise.all([
+        firebaseHelper.getData('invoices'),
+        firebaseHelper.getData('products'),
+        firebaseHelper.getData('clients'),
+        firebaseHelper.getData('shippingRates')
+    ]).then(([savedInvoices, savedProducts, savedClients, savedRates]) => {
+        if (savedInvoices) invoices = savedInvoices;
+        if (savedProducts) products = savedProducts;
+        if (savedClients) clients = savedClients;
+        if (savedRates) shippingRates = savedRates;
+        
+        // تحديث كل الجداول
+        updateInvoicesTable();
+        updateProductsList();
+        updateClientsList();
+        updateShipmentsTable();
+        updateHomeStats();
+    });
+});
+
+
+
 
 
         // تعديل دالة toggleInvoiceForm
