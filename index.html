@@ -1173,6 +1173,114 @@
         .filter-btn i {
             margin-right: 5px;
         }
+
+
+
+
+        
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.dashboard-card {
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-text {
+    flex: 1;
+}
+
+.card-text h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.count {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+    margin-top: 5px;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+/* ألوان البطاقات */
+.products {
+    background: linear-gradient(135deg, #fff8e6, #fff);
+    color: #ffc107;
+}
+
+.products .card-icon {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.customers {
+    background: linear-gradient(135deg, #ffe6ea, #fff);
+    color: #ff4081;
+}
+
+.customers .card-icon {
+    background: rgba(255, 64, 129, 0.2);
+    color: #ff4081;
+}
+
+.invoices {
+    background: linear-gradient(135deg, #e3f2fd, #fff);
+    color: #2196f3;
+}
+
+.invoices .card-icon {
+    background: rgba(33, 150, 243, 0.2);
+    color: #2196f3;
+}
+
+.shipments {
+    background: linear-gradient(135deg, #e8f5e9, #fff);
+    color: #4caf50;
+}
+
+.shipments .card-icon {
+    background: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+
+
+
+
+
+
+
+
+
+
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
@@ -1227,75 +1335,75 @@
         };
 
         // تحميل البيانات عند بدء التطبيق
-        // تحميل البيانات عند بدء التطبيق
-        window.onload = async function () {
-            try {
-                // تحميل البيانات من Firebase
-                const [savedRates, savedInvoices, savedProducts, savedClients] = await Promise.all([
-                    firebaseHelper.getData('shippingRates'),
-                    firebaseHelper.getData('invoices'),
-                    firebaseHelper.getData('products'),
-                    firebaseHelper.getData('clients')
-                ]);
+        // تعديل الكود الحالي للتحميل المبدئي
+window.onload = async function () {
+    try {
+        // تحميل البيانات من Firebase
+        const [savedRates, savedInvoices, savedProducts, savedClients] = await Promise.all([
+            firebaseHelper.getData('shippingRates'),
+            firebaseHelper.getData('invoices'),
+            firebaseHelper.getData('products'),
+            firebaseHelper.getData('clients')
+        ]);
 
-                // تحميل أسعار الشحن
-                if (savedRates) {
-                    shippingRates = savedRates;
-                }
+        // تحميل أسعار الشحن
+        if (savedRates) {
+            shippingRates = savedRates;
+        }
 
-                // تحميل الفواتير
-                if (savedInvoices) {
-                    invoices = savedInvoices;
-                    // تحديث رقم آخر فاتورة
-                    const lastNumber = getLastInvoiceNumber();
-                    invoiceCounter = lastNumber + 1;
-                    updateInvoicesTable();
-                }
+        // تحميل الفواتير
+        if (savedInvoices) {
+            invoices = savedInvoices;
+            const lastNumber = getLastInvoiceNumber();
+            invoiceCounter = lastNumber + 1;
+        }
 
-                // تحميل المنتجات
-                if (savedProducts) {
-                    products = savedProducts;
-                    updateProductsList();
-                }
+        // تحميل المنتجات
+        if (savedProducts) {
+            products = savedProducts;
+        }
 
-                // تحميل العملاء
-                if (savedClients) {
-                    clients = savedClients;
-                    updateClientsList();
-                }
+        // تحميل العملاء
+        if (savedClients) {
+            clients = savedClients;
+        }
 
-                // مراقبة التغييرات في الفواتير
-                database.ref('invoices').on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        invoices = data;
-                        updateInvoicesTable();
-                        updateShipmentsTable();
-                    }
-                });
-
-                // تحديث جدول الشحنات إذا كان قسم الشحنات مفتوحاً
-                if (document.getElementById('shipping').classList.contains('active')) {
-                    updateShipmentsTable();
-                }
-
-                // عرض قسم الفواتير افتراضياً
-                showSection('invoices');
-
-                // تهيئة نظام الإشعارات
-                initNotifications();
-
-                console.log('تم تحميل البيانات بنجاح');
-
-            } catch (error) {
-                console.error('خطأ في تحميل البيانات:', error);
-                addNotification(
-                    'خطأ في التحميل',
-                    'حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة',
-                    'error'
-                );
+        // مراقبة التغييرات في الفواتير
+        database.ref('invoices').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                invoices = data;
+                updateInvoicesTable();
+                updateShipmentsTable();
             }
-        };
+        });
+
+        // تهيئة نظام الإشعارات
+        initNotifications();
+
+        // عرض قسم الرئيسية افتراضياً
+        showSection('home');
+        updateHomeStats(); // تحديث إحصائيات الصفحة الرئيسية
+
+        console.log('تم تحميل البيانات بنجاح');
+
+    } catch (error) {
+        console.error('خطأ في تحميل البيانات:', error);
+        addNotification(
+            'خطأ في التحميل',
+            'حدث خطأ أثناء تحميل البيانات. يرجى تحديث الصفحة',
+            'error'
+        );
+    }
+};
+
+// تعديل مستمع تحميل المستند
+document.addEventListener('DOMContentLoaded', () => {
+    showSection('home'); // عرض الصفحة الرئيسية مباشرة
+    initNotifications();
+});
+
+
     </script>
     <script>
         // دالة لتقسيم الصفحات
@@ -1401,6 +1509,10 @@
             <i class="fas fa-bell"></i>
             <span class="notifications-count">0</span>
         </div>
+        <button class="button" onclick="showSection('home')">
+            <i class="fas fa-home"></i>
+            الرئيسية
+        </button>
         <button class="button" onclick="showSection('invoices')">
             <i class="fas fa-file-invoice"></i>
             الفواتير
@@ -1428,6 +1540,68 @@
     </div>
 
     <div class="main-content">
+
+
+        <!-- تعديل قسم الرئيسية في HTML-->
+const homeSection = `
+<div id="home" class="section-content">
+    <h2 class="section-title">الرئيسية</h2>
+    <div class="dashboard-cards">
+        <div class="dashboard-card products">
+            <div class="card-content">
+                <div class="card-text">
+                    <h3>المنتجات</h3>
+                    <span class="count" id="productsCount">0</span>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-box-open"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card customers">
+            <div class="card-content">
+                <div class="card-text">
+                    <h3>العملاء</h3>
+                    <span class="count" id="clientsCount">0</span>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card invoices">
+            <div class="card-content">
+                <div class="card-text">
+                    <h3>الفواتير</h3>
+                    <span class="count" id="invoicesCount">0</span>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-card shipments">
+            <div class="card-content">
+                <div class="card-text">
+                    <h3>الشحنات</h3>
+                    <span class="count" id="shipmentsCount">0</span>
+                </div>
+                <div class="card-icon">
+                    <i class="fas fa-shipping-fast"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+`;
+
+
+
+
+
 
         <div id="invoices" class="section-content">
             <h2 class="section-title">قسم الفواتير</h2>
@@ -4556,6 +4730,31 @@
                 }
             });
         });
+
+
+
+        // تحديث دالة updateHomeStats لتحديث الإحصائيات
+function updateHomeStats() {
+    document.getElementById('productsCount').textContent = products.length || 0;
+    document.getElementById('clientsCount').textContent = clients.length || 0;
+    document.getElementById('invoicesCount').textContent = invoices.length || 0;
+    document.getElementById('shipmentsCount').textContent = invoices.filter(inv => inv.shipped).length || 0;
+}
+
+// تحديث الإحصائيات عند عرض الصفحة الرئيسية
+function showSection(sectionId) {
+    const sections = document.getElementsByClassName('section-content');
+    for (let section of sections) {
+        section.classList.remove('active');
+    }
+    document.getElementById(sectionId).classList.add('active');
+    
+    if (sectionId === 'home') {
+        updateHomeStats();
+    }
+}
+
+
 
 
 
