@@ -3461,10 +3461,33 @@ function getInvoiceStatusClass(invoice) {
             firebaseHelper.saveData('notifications', notifications);
         }
 
-        function toggleNotifications() {
-            const panel = document.querySelector('.notifications-panel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-        }
+        // إضافة متغير لتتبع حالة لوحة الإشعارات
+let isNotificationsPanelVisible = false;
+
+function toggleNotifications() {
+    const panel = document.querySelector('.notifications-panel');
+    isNotificationsPanelVisible = !isNotificationsPanelVisible;
+    panel.style.display = isNotificationsPanelVisible ? 'block' : 'none';
+
+    // إضافة مستمع حدث للنقر خارج لوحة الإشعارات
+    if (isNotificationsPanelVisible) {
+        setTimeout(() => {
+            document.addEventListener('click', closeNotificationsOnClickOutside);
+        }, 0);
+    }
+}
+
+function closeNotificationsOnClickOutside(event) {
+    const panel = document.querySelector('.notifications-panel');
+    const notificationIcon = document.querySelector('.notifications-icon');
+
+    // التحقق مما إذا كان النقر خارج لوحة الإشعارات وأيقونة الإشعارات
+    if (!panel.contains(event.target) && !notificationIcon.contains(event.target)) {
+        panel.style.display = 'none';
+        isNotificationsPanelVisible = false;
+        document.removeEventListener('click', closeNotificationsOnClickOutside);
+    }
+}
 
         function updateNotificationsCount() {
             document.querySelector('.notifications-count').textContent = unreadCount;
@@ -3516,12 +3539,7 @@ function getInvoiceStatusClass(invoice) {
                         }
                     }, 300);
 
-
-
                 }
-
-
-
                 // حفظ التغييرات في Firebase
                 firebaseHelper.saveData('notifications', notifications);
             }
