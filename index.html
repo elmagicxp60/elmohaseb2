@@ -295,7 +295,7 @@
         }
 
         .shipped {
-            background-color: rgba(34, 220, 43, 0.2); /* أحمر شفاف بنسبة 50% */
+            background-color: rgba(11, 249, 90, 0.171); /* أحمر شفاف بنسبة 50% */
 
         }
 
@@ -2728,11 +2728,11 @@
         });
 
         function updateShipmentsTable() {
-            const shipmentsSection = document.getElementById('shipping');
+    const shipmentsSection = document.getElementById('shipping');
 
-            // إنشاء جدول الشحنات إذا لم يكن موجوداً
-            if (!document.getElementById('shipmentsTable')) {
-                shipmentsSection.innerHTML = `
+    // إنشاء جدول الشحنات إذا لم يكن موجوداً
+    if (!document.getElementById('shipmentsTable')) {
+        shipmentsSection.innerHTML = `
             <h2 class="section-title">قسم الشحنات</h2>
             <table id="shipmentsTable" class="invoice-table">
                 <thead>
@@ -2749,39 +2749,110 @@
             </table>
             <div id="shipmentsTable-pagination" class="pagination-controls"></div>
         `;
-            }
+    }
 
-            // تحديث البيانات العالمية للشحنات
-            window.shipmentsTableData = invoices
-                .filter(inv => inv.shipped)
-                .map(inv => `
-        <tr class="${getShipmentRowClass(inv)}" 
-            data-invoice-number="${inv.number}"
-            data-customer-name="${inv.customer}">
-            <td>${inv.number}</td>
-            <td>${inv.date}</td>
-            <td>${inv.customer}</td>
-            <td>${inv.address}</td>
-            <td>${inv.total}</td>
-           <td>
-                    <select class="status-dropdown" onchange="updateShipmentStatus(${invoices.indexOf(inv)}, this.value)">
-                        <option value="pending" ${inv.status === 'pending' ? 'selected' : ''}>قيد التسليم</option>
-                        <option value="delivered" ${inv.status === 'delivered' ? 'selected' : ''}>تم التسليم</option>
-                        <option value="cancelled" ${inv.status === 'cancelled' ? 'selected' : ''}>إلغاء</option>
-                        <option value="returned" ${inv.status === 'returned' ? 'selected' : ''}>مرتجع</option>
-                        <option value="paid" ${inv.paid ? 'selected' : ''}>مدفوع</option>
-                    </select>
-                    <button class="action-btn details-btn" onclick="showInvoiceDetails(${invoices.indexOf(inv)})" title="تفاصيل">
-                        <i class="fas fa-eye"></i>
-                    </button>
-                </td>
-        </tr>
-    `);
+    // تحديث البيانات العالمية للشحنات
+    window.shipmentsTableData = invoices
+        .filter(inv => inv.shipped)
+        .map(inv => {
+            const invoiceIndex = invoices.indexOf(inv); // حفظ موقع الفاتورة في المصفوفة الأصلية
+            return `
+                <tr class="${getShipmentRowClass(inv)}" 
+                    data-invoice-number="${inv.number}"
+                    data-customer-name="${inv.customer}">
+                    <td>${inv.number}</td>
+                    <td>${inv.date}</td>
+                    <td>${inv.customer}</td>
+                    <td>${inv.address}</td>
+                    <td>${inv.total}</td>
+                    <td>
+                        <select class="status-dropdown" onchange="updateShipmentStatus(${invoiceIndex}, this.value)">
+                            <option value="pending" ${inv.status === 'pending' ? 'selected' : ''}>قيد التسليم</option>
+                            <option value="delivered" ${inv.status === 'delivered' ? 'selected' : ''}>تم التسليم</option>
+                            <option value="cancelled" ${inv.status === 'cancelled' ? 'selected' : ''}>إلغاء</option>
+                            <option value="returned" ${inv.status === 'returned' ? 'selected' : ''}>مرتجع</option>
+                            <option value="paid" ${inv.paid ? 'selected' : ''}>مدفوع</option>
+                        </select>
+                        <button class="action-btn details-btn" onclick="showInvoiceDetails(${invoiceIndex})" title="تفاصيل">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="action-btn delete-invoice-btn" onclick="removeFromShipments(${invoiceIndex})" title="حذف من الشحنات">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        });
 
-            // عرض الصفحة الأولى باستخدام الدالة المحسنة
-            paginateShipmentsTable(1);
-        }
+    // عرض الصفحة الأولى باستخدام الدالة المحسنة
+    paginateShipmentsTable(1);
+}
 
+
+
+        // إضافة دالة جديدة لحذف الفاتورة من الشحنات
+        function removeFromShipments(index) {
+    if (confirm('هل أنت متأكد من حذف هذه الفاتورة من الشحنات؟')) {
+        const invoice = invoices[index];
+        
+        // إعادة تعيين جميع حالات الفاتورة
+        invoice.shipped = false;
+        invoice.status = 'pending';
+        invoice.paid = false;
+
+        // حفظ التغييرات في Firebase
+        firebaseHelper.saveData('invoices', invoices)
+            .then(() => {
+                // تحديث واجهة المستخدم
+                if (document.getElementById('shipping').classList.contains('active')) {
+                    updateShipmentsTable(); // تحديث جدول الشحنات
+                }
+                
+                // تحديث جدول الفواتير
+                const invoicesTable = document.getElementById('invoicesTable');
+                if (invoicesTable) {
+                    const invoiceRow = invoicesTable.querySelector(`tr[data-invoice-number="${invoice.number}"]`);
+                    if (invoiceRow) {
+                        invoiceRow.classList.remove('shipped');
+                        // تحديث حالة الفاتورة في الجدول
+                        const statusCell = invoiceRow.querySelector('.status-badge');
+                        if (statusCell) {
+                            statusCell.className = 'status-badge status-pending';
+                            statusCell.textContent = 'جديدة';
+                        }
+                    }
+                }
+                
+                // تحديث الجدول بالكامل
+                updateInvoicesTable();
+
+                // إضافة إشعار
+                addNotification(
+                    'حذف من الشحنات',
+                    `تم إرجاع الفاتورة ${invoice.number} إلى حالتها الأصلية`,
+                    'info'
+                );
+
+                // تمييز الفاتورة في جدول الفواتير
+                setTimeout(() => {
+                    const newInvoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
+                    if (newInvoiceRow) {
+                        newInvoiceRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        newInvoiceRow.classList.add('highlight-row');
+                        setTimeout(() => newInvoiceRow.classList.remove('highlight-row'), 6000);
+                    }
+                }, 300);
+            })
+            .catch(error => {
+                console.error('خطأ في حذف الشحنة:', error);
+                addNotification(
+                    'خطأ',
+                    'حدث خطأ أثناء حذف الشحنة',
+                    'error'
+                );
+            });
+    }
+}
 
 
 
