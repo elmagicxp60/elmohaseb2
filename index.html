@@ -1439,9 +1439,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         // التأكد من تحميل البيانات عند بدء التطبيق
-        document.addEventListener('DOMContentLoaded', () => {
-            updateInvoicesTable();
-        });
+document.addEventListener('DOMContentLoaded', () => {
+    showSection('home'); // عرض الصفحة الرئيسية مباشرة
+    initNotifications();
+});
 
         // تعديل دالة editInvoice
         function editInvoice(index) {
@@ -2949,8 +2950,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // تحميل البيانات عند بدء التطبيق
         document.addEventListener('DOMContentLoaded', () => {
-            showSection('invoices');
-        });
+    showSection('home'); // عرض الصفحة الرئيسية مباشرة
+    initNotifications();
+});
+
+
+
+
 
         function updateShipmentsTable() {
             const shipmentsSection = document.getElementById('shipping');
@@ -4033,7 +4039,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // إضافة استدعاء initNotifications عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', () => {
-            showSection('invoices');
+            showSection('home');
             initNotifications();
         });
 
