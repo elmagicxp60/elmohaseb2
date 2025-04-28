@@ -54,19 +54,22 @@
         }
 
         .sidebar {
+            
             width: 280px;
-            height: 200vh;
+            height: 150vh;
             background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
             padding: 25px;
             box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
         }
 
         .main-content {
+            
             flex: 1;
             padding: 30px;
             background: rgba(255, 255, 255, 0.9);
             margin: 20px;
             border-radius: 15px;
+            max-height: 900px;	
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
@@ -2356,9 +2359,15 @@
 
         function shipInvoice(index) {
             const invoice = invoices[index];
+            // إضافة تاريخ الشحن الحالي
+            const today = new Date();
+            const shippingDate = `${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+
             invoice.shipped = true;
             invoice.status = 'pending';
             invoice.paid = false;
+            invoice.shippingDate = shippingDate; // إضافة تاريخ الشحن
+
 
             // حفظ في Firebase
             firebaseHelper.saveData('invoices', invoices)
@@ -2641,73 +2650,73 @@
         }
 
         function saveClient() {
-    const clientName = document.getElementById('clientName').value;
-    const governorate = document.getElementById('clientGovernorate').value;
-    const phone = document.getElementById('clientPhone').value;
-    const address = document.getElementById('clientAddress').value;
+            const clientName = document.getElementById('clientName').value;
+            const governorate = document.getElementById('clientGovernorate').value;
+            const phone = document.getElementById('clientPhone').value;
+            const address = document.getElementById('clientAddress').value;
 
-    if (!clientName || !governorate || !phone || !address) {
-        alert('يرجى ملء جميع الحقول المطلوبة');
-        return;
-    }
+            if (!clientName || !governorate || !phone || !address) {
+                alert('يرجى ملء جميع الحقول المطلوبة');
+                return;
+            }
 
-    const editingId = document.getElementById('clientModal').dataset.editingId;
-    const clientData = {
-        id: editingId ? Number(editingId) : Date.now(),
-        name: clientName,
-        governorate: governorate,
-        phone: phone,
-        address: address
-    };
+            const editingId = document.getElementById('clientModal').dataset.editingId;
+            const clientData = {
+                id: editingId ? Number(editingId) : Date.now(),
+                name: clientName,
+                governorate: governorate,
+                phone: phone,
+                address: address
+            };
 
-    if (editingId) {
-        const index = clients.findIndex(c => c.id === Number(editingId));
-        if (index !== -1) {
-            clients[index] = clientData;
-            addNotification(
-                'تحديث عميل',
-                `تم تحديث بيانات العميل "${clientName}" بنجاح`,
-                'success'
-            );
-        }
-    } else {
-        clients.push(clientData);
-        addNotification(
-            'عميل جديد',
-            `تم إضافة العميل "${clientName}" بنجاح`,
-            'success'
-        );
-    }
-
-    // حفظ في Firebase وتحديث الواجهة
-    firebaseHelper.saveData('clients', clients)
-        .then(() => {
-            updateClientsList();
-            clearClientForm();
-            closeClientModal();
-            showSection('clients');
-            
-            // تمييز العميل في القائمة
-            setTimeout(() => {
-                const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
-                if (clientRow) {
-                    clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    clientRow.classList.add('highlight-row');
-                    setTimeout(() => {
-                        clientRow.classList.remove('highlight-row');
-                    }, 6000);
+            if (editingId) {
+                const index = clients.findIndex(c => c.id === Number(editingId));
+                if (index !== -1) {
+                    clients[index] = clientData;
+                    addNotification(
+                        'تحديث عميل',
+                        `تم تحديث بيانات العميل "${clientName}" بنجاح`,
+                        'success'
+                    );
                 }
-            }, 300);
-        })
-        .catch(error => {
-            console.error('خطأ في حفظ العميل:', error);
-            addNotification(
-                'خطأ',
-                'حدث خطأ أثناء حفظ بيانات العميل',
-                'error'
-            );
-        });
-}
+            } else {
+                clients.push(clientData);
+                addNotification(
+                    'عميل جديد',
+                    `تم إضافة العميل "${clientName}" بنجاح`,
+                    'success'
+                );
+            }
+
+            // حفظ في Firebase وتحديث الواجهة
+            firebaseHelper.saveData('clients', clients)
+                .then(() => {
+                    updateClientsList();
+                    clearClientForm();
+                    closeClientModal();
+                    showSection('clients');
+
+                    // تمييز العميل في القائمة
+                    setTimeout(() => {
+                        const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
+                        if (clientRow) {
+                            clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            clientRow.classList.add('highlight-row');
+                            setTimeout(() => {
+                                clientRow.classList.remove('highlight-row');
+                            }, 6000);
+                        }
+                    }, 300);
+                })
+                .catch(error => {
+                    console.error('خطأ في حفظ العميل:', error);
+                    addNotification(
+                        'خطأ',
+                        'حدث خطأ أثناء حفظ بيانات العميل',
+                        'error'
+                    );
+                });
+        }
 
         function updateClientsList() {
             const clientsSection = document.getElementById('clients');
@@ -2969,18 +2978,18 @@
 
 
 
-        function updateShipmentsTable() {
-            const shipmentsSection = document.getElementById('shipping');
+        // تعديل دالة updateShipmentsTable لعرض تاريخ الشحن بدلاً من تاريخ الفاتورة
+function updateShipmentsTable() {
+    const shipmentsSection = document.getElementById('shipping');
 
-            // إنشاء جدول الشحنات إذا لم يكن موجوداً
-            if (!document.getElementById('shipmentsTable')) {
-                shipmentsSection.innerHTML = `
+    if (!document.getElementById('shipmentsTable')) {
+        shipmentsSection.innerHTML = `
             <h2 class="section-title">قسم الشحنات</h2>
             <table id="shipmentsTable" class="invoice-table">
                 <thead>
                     <tr>
                         <th>رقم الفاتورة</th>
-                        <th>التاريخ</th>
+                        <th>تاريخ الشحن</th>
                         <th>اسم العميل</th>
                         <th>العنوان</th>
                         <th>الإجمالي</th>
@@ -2991,19 +3000,18 @@
             </table>
             <div id="shipmentsTable-pagination" class="pagination-controls"></div>
         `;
-            }
+    }
 
-            // تحديث البيانات العالمية للشحنات
-            window.shipmentsTableData = invoices
-                .filter(inv => inv.shipped)
-                .map(inv => {
-                    const invoiceIndex = invoices.indexOf(inv); // حفظ موقع الفاتورة في المصفوفة الأصلية
-                    return `
+    window.shipmentsTableData = invoices
+        .filter(inv => inv.shipped)
+        .map(inv => {
+            const invoiceIndex = invoices.indexOf(inv);
+            return `
                 <tr class="${getShipmentRowClass(inv)}" 
                     data-invoice-number="${inv.number}"
                     data-customer-name="${inv.customer}">
                     <td>${inv.number}</td>
-                    <td>${inv.date}</td>
+                    <td>${inv.shippingDate || inv.date}</td>
                     <td>${inv.customer}</td>
                     <td>${inv.address}</td>
                     <td>${inv.total}</td>
@@ -3024,11 +3032,10 @@
                     </td>
                 </tr>
             `;
-                });
+        });
 
-            // استخدام الصفحة الحالية
-            paginateShipmentsTable(currentShipmentsPage);
-        }
+    paginateShipmentsTable(currentShipmentsPage);
+}
 
 
         // إضافة دالة جديدة لحذف الفاتورة من الشحنات
@@ -3776,104 +3783,104 @@
 
         // تعديل دالة markAsRead في الملف الرئيسي
         function markAsRead(id) {
-    const notification = notifications.find(n => n.id === id);
-    if (notification && !notification.read) {
-        notification.read = true;
-        unreadCount = Math.max(0, unreadCount - 1);
-        updateNotificationsCount();
-        updateNotificationsList();
+            const notification = notifications.find(n => n.id === id);
+            if (notification && !notification.read) {
+                notification.read = true;
+                unreadCount = Math.max(0, unreadCount - 1);
+                updateNotificationsCount();
+                updateNotificationsList();
 
-        // استخراج المعلومات من نص الإشعار
-        const productMatch = notification.message.match(/المنتج "([^"]+)"/);
-        const clientMatch = notification.message.match(/العميل "([^"]+)"/);
-        
-        if (productMatch) {
-            const productName = productMatch[1];
-            showSection('products');
-            setTimeout(() => {
-                // حساب الصفحة التي يوجد بها المنتج
-                const productIndex = products.findIndex(p => p.name === productName);
-                if (productIndex !== -1) {
-                    const page = Math.floor(productIndex / 10) + 1;
-                    paginateProducts(page);
-                    
+                // استخراج المعلومات من نص الإشعار
+                const productMatch = notification.message.match(/المنتج "([^"]+)"/);
+                const clientMatch = notification.message.match(/العميل "([^"]+)"/);
+
+                if (productMatch) {
+                    const productName = productMatch[1];
+                    showSection('products');
                     setTimeout(() => {
-                        const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
-                        if (productRow) {
-                            productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            productRow.classList.add('highlight-row');
+                        // حساب الصفحة التي يوجد بها المنتج
+                        const productIndex = products.findIndex(p => p.name === productName);
+                        if (productIndex !== -1) {
+                            const page = Math.floor(productIndex / 10) + 1;
+                            paginateProducts(page);
+
                             setTimeout(() => {
-                                productRow.classList.remove('highlight-row');
+                                const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
+                                if (productRow) {
+                                    productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    productRow.classList.add('highlight-row');
+                                    setTimeout(() => {
+                                        productRow.classList.remove('highlight-row');
+                                    }, 6000);
+                                }
+                            }, 300);
+                        }
+                    }, 100);
+                } else if (clientMatch) {
+                    // إشعار متعلق بعميل
+                    const clientName = clientMatch[1];
+                    showSection('clients');
+                    setTimeout(() => {
+                        const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
+                        if (clientRow) {
+                            clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            clientRow.classList.add('highlight-row');
+                            setTimeout(() => {
+                                clientRow.classList.remove('highlight-row');
                             }, 6000);
                         }
                     }, 300);
+                } else if (notification.message.includes('فاتورة')) {
+                    // إشعار متعلق بفاتورة
+                    const invoiceNumber = notification.message.match(/#\d+/)?.[0];
+                    if (invoiceNumber) {
+                        showSection('invoices');
+                        setTimeout(() => {
+                            highlightInvoice(invoiceNumber);
+                        }, 300);
+                    }
+                } else if (notification.message.includes('شحنة')) {
+                    // إشعار متعلق بشحنة
+                    const invoiceNumber = notification.message.match(/#\d+/)?.[0];
+                    if (invoiceNumber) {
+                        showSection('shipping');
+                        setTimeout(() => {
+                            highlightShipment(invoiceNumber);
+                        }, 300);
+                    }
                 }
-            }, 100);
-        } else if (clientMatch) {
-            // إشعار متعلق بعميل
-            const clientName = clientMatch[1];
-            showSection('clients');
-            setTimeout(() => {
-                const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
-                if (clientRow) {
-                    clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    clientRow.classList.add('highlight-row');
-                    setTimeout(() => {
-                        clientRow.classList.remove('highlight-row');
-                    }, 6000);
-                }
-            }, 300);
-        } else if (notification.message.includes('فاتورة')) {
-            // إشعار متعلق بفاتورة
-            const invoiceNumber = notification.message.match(/#\d+/)?.[0];
-            if (invoiceNumber) {
-                showSection('invoices');
-                setTimeout(() => {
-                    highlightInvoice(invoiceNumber);
-                }, 300);
-            }
-        } else if (notification.message.includes('شحنة')) {
-            // إشعار متعلق بشحنة
-            const invoiceNumber = notification.message.match(/#\d+/)?.[0];
-            if (invoiceNumber) {
-                showSection('shipping');
-                setTimeout(() => {
-                    highlightShipment(invoiceNumber);
-                }, 300);
+
+                // حفظ التغييرات في Firebase
+                firebaseHelper.saveData('notifications', notifications);
             }
         }
-
-        // حفظ التغييرات في Firebase
-        firebaseHelper.saveData('notifications', notifications);
-    }
-}
 
 
 
 
         // إضافة دالة highlightProduct
-function highlightProduct(productName) {
-    const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
-    if (productRow) {
-        productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        productRow.classList.add('highlight-row');
-        setTimeout(() => {
-            productRow.classList.remove('highlight-row');
-        }, 6000);
-    }
-}
+        function highlightProduct(productName) {
+            const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
+            if (productRow) {
+                productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                productRow.classList.add('highlight-row');
+                setTimeout(() => {
+                    productRow.classList.remove('highlight-row');
+                }, 6000);
+            }
+        }
 
-// إضافة دالة highlightClient
-function highlightClient(clientName) {
-    const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
-    if (clientRow) {
-        clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        clientRow.classList.add('highlight-row');
-        setTimeout(() => {
-            clientRow.classList.remove('highlight-row');
-        }, 6000);
-    }
-}
+        // إضافة دالة highlightClient
+        function highlightClient(clientName) {
+            const clientRow = document.querySelector(`tr[data-client-name="${clientName}"]`);
+            if (clientRow) {
+                clientRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                clientRow.classList.add('highlight-row');
+                setTimeout(() => {
+                    clientRow.classList.remove('highlight-row');
+                }, 6000);
+            }
+        }
 
 
 
@@ -3914,79 +3921,79 @@ function highlightClient(clientName) {
 
         // تعديل دالة saveProduct لإضافة إشعار
         function saveProduct() {
-    try {
-        // جمع بيانات المنتج
-        const productName = document.getElementById('productName').value;
-        const buyPrice = parseFloat(document.getElementById('buyPrice').value);
-        const sellPrice = parseFloat(document.getElementById('sellPrice').value);
-        const quantity = parseInt(document.getElementById('quantity').value);
-        const imagePreview = document.getElementById('imagePreview');
+            try {
+                // جمع بيانات المنتج
+                const productName = document.getElementById('productName').value;
+                const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+                const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+                const quantity = parseInt(document.getElementById('quantity').value);
+                const imagePreview = document.getElementById('imagePreview');
 
-        // التحقق من البيانات
-        if (!productName || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(quantity)) {
-            alert('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
-            return;
-        }
-
-        const editingId = document.getElementById('productModal').dataset.editingId;
-        const productData = {
-            id: editingId ? parseInt(editingId) : Date.now(),
-            name: productName,
-            buyPrice: buyPrice,
-            sellPrice: sellPrice,
-            quantity: quantity,
-            image: imagePreview.src || defaultImage
-        };
-
-        // إغلاق النموذج مباشرة
-        closeProductModal();
-
-        // تحديث المصفوفة المحلية
-        if (editingId) {
-            const index = products.findIndex(p => p.id === parseInt(editingId));
-            if (index !== -1) {
-                products[index] = productData;
-            }
-        } else {
-            products.push(productData);
-        }
-
-        // تحديث واجهة المستخدم فوراً
-        showSection('products');
-        const productIndex = products.findIndex(p => p.name === productName);
-        const page = Math.floor(productIndex / 10) + 1;
-        paginateProducts(page);
-
-        // حفظ في Firebase في الخلفية
-        firebaseHelper.saveData('products', products)
-            .then(() => {
-                // تمييز المنتج بعد حفظه
-                const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
-                if (productRow) {
-                    productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    productRow.classList.add('highlight-row');
-                    setTimeout(() => {
-                        productRow.classList.remove('highlight-row');
-                    }, 6000);
+                // التحقق من البيانات
+                if (!productName || isNaN(buyPrice) || isNaN(sellPrice) || isNaN(quantity)) {
+                    alert('يرجى ملء جميع الحقول المطلوبة بشكل صحيح');
+                    return;
                 }
 
-                // إضافة إشعار نجاح
-                addNotification(
-                    'منتج جديد',
-                    `تم ${editingId ? 'تحديث' : 'إضافة'} المنتج "${productName}" بنجاح`,
-                    'success'
-                );
-            })
-            .catch(error => {
-                console.error('خطأ في حفظ المنتج:', error);
-                addNotification('خطأ', 'حدث خطأ أثناء حفظ المنتج في قاعدة البيانات', 'error');
-            });
+                const editingId = document.getElementById('productModal').dataset.editingId;
+                const productData = {
+                    id: editingId ? parseInt(editingId) : Date.now(),
+                    name: productName,
+                    buyPrice: buyPrice,
+                    sellPrice: sellPrice,
+                    quantity: quantity,
+                    image: imagePreview.src || defaultImage
+                };
 
-    } catch (error) {
-        console.error('خطأ:', error);
-        addNotification('خطأ', 'حدث خطأ غير متوقع', 'error');
-    }
-}
+                // إغلاق النموذج مباشرة
+                closeProductModal();
+
+                // تحديث المصفوفة المحلية
+                if (editingId) {
+                    const index = products.findIndex(p => p.id === parseInt(editingId));
+                    if (index !== -1) {
+                        products[index] = productData;
+                    }
+                } else {
+                    products.push(productData);
+                }
+
+                // تحديث واجهة المستخدم فوراً
+                showSection('products');
+                const productIndex = products.findIndex(p => p.name === productName);
+                const page = Math.floor(productIndex / 10) + 1;
+                paginateProducts(page);
+
+                // حفظ في Firebase في الخلفية
+                firebaseHelper.saveData('products', products)
+                    .then(() => {
+                        // تمييز المنتج بعد حفظه
+                        const productRow = document.querySelector(`tr[data-product-name="${productName}"]`);
+                        if (productRow) {
+                            productRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            productRow.classList.add('highlight-row');
+                            setTimeout(() => {
+                                productRow.classList.remove('highlight-row');
+                            }, 6000);
+                        }
+
+                        // إضافة إشعار نجاح
+                        addNotification(
+                            'منتج جديد',
+                            `تم ${editingId ? 'تحديث' : 'إضافة'} المنتج "${productName}" بنجاح`,
+                            'success'
+                        );
+                    })
+                    .catch(error => {
+                        console.error('خطأ في حفظ المنتج:', error);
+                        addNotification('خطأ', 'حدث خطأ أثناء حفظ المنتج في قاعدة البيانات', 'error');
+                    });
+
+            } catch (error) {
+                console.error('خطأ:', error);
+                addNotification('خطأ', 'حدث خطأ غير متوقع', 'error');
+            }
+        }
 
 
 
