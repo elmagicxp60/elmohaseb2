@@ -3116,6 +3116,8 @@ function updateShipmentsTable() {
             if (pageNumber < 1) pageNumber = 1;
             if (pageNumber > totalPages) pageNumber = totalPages;
 
+            // حفظ رقم الصفحة الحالية في المتغير العام
+            currentShipmentsPage = pageNumber;
             const start = (pageNumber - 1) * shipmentsPerPage;
             const end = start + shipmentsPerPage;
 
