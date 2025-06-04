@@ -54,7 +54,7 @@
         }
 
         .sidebar {
-            
+
             width: 280px;
             height: 150vh;
             background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
@@ -63,12 +63,13 @@
         }
 
         .main-content {
-            
+
             flex: 1;
             padding: 30px;
             background: rgba(255, 255, 255, 0.9);
             margin: 20px;
             border-radius: 15px;
+
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
         }
 
@@ -962,8 +963,26 @@
         }
 
         .notification-time {
-            color: #999;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            color: #666;
             font-size: 12px;
+        }
+
+        .notification-time .date {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-time .date i {
+            color: #3498db;
+        }
+
+        .notification-time .time-ago {
+            color: #999;
         }
 
         .notification-item.unread {
@@ -1599,7 +1618,7 @@
                 </div>
             </div>
         </div>
-       
+
 
 
 
@@ -1721,7 +1740,7 @@
                     </button>
                 </div>
             </div>
-           
+
         </div>
 
         <!-- إضافة نموذج تقرير الأرباح -->
@@ -2978,11 +2997,11 @@
 
 
         // تعديل دالة updateShipmentsTable لعرض تاريخ الشحن بدلاً من تاريخ الفاتورة
-function updateShipmentsTable() {
-    const shipmentsSection = document.getElementById('shipping');
+        function updateShipmentsTable() {
+            const shipmentsSection = document.getElementById('shipping');
 
-    if (!document.getElementById('shipmentsTable')) {
-        shipmentsSection.innerHTML = `
+            if (!document.getElementById('shipmentsTable')) {
+                shipmentsSection.innerHTML = `
             <h2 class="section-title">قسم الشحنات</h2>
             <table id="shipmentsTable" class="invoice-table">
                 <thead>
@@ -2999,13 +3018,13 @@ function updateShipmentsTable() {
             </table>
             <div id="shipmentsTable-pagination" class="pagination-controls"></div>
         `;
-    }
+            }
 
-    window.shipmentsTableData = invoices
-        .filter(inv => inv.shipped)
-        .map(inv => {
-            const invoiceIndex = invoices.indexOf(inv);
-            return `
+            window.shipmentsTableData = invoices
+                .filter(inv => inv.shipped)
+                .map(inv => {
+                    const invoiceIndex = invoices.indexOf(inv);
+                    return `
                 <tr class="${getShipmentRowClass(inv)}" 
                     data-invoice-number="${inv.number}"
                     data-customer-name="${inv.customer}">
@@ -3031,10 +3050,10 @@ function updateShipmentsTable() {
                     </td>
                 </tr>
             `;
-        });
+                });
 
-    paginateShipmentsTable(currentShipmentsPage);
-}
+            paginateShipmentsTable(currentShipmentsPage);
+        }
 
 
         // إضافة دالة جديدة لحذف الفاتورة من الشحنات
@@ -3215,6 +3234,7 @@ function updateShipmentsTable() {
                         const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
                         if (shipmentRow) {
                             shipmentRow.classList.add('highlight-row');
+                            shipmentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
                             setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
                         }
 
@@ -3650,7 +3670,7 @@ function updateShipmentsTable() {
                 `).join('')}
             </tbody>
         </table>
-    `;
+                  `;
 
             // إضافة وظيفة البحث
             setupClientSearch();
@@ -3714,22 +3734,54 @@ function updateShipmentsTable() {
         let unreadCount = 0;
 
         function addNotification(title, message, type = 'info') {
+            // إنشاء كائن التاريخ للوقت الحالي
+            const currentDate = new Date();
+
             const notification = {
                 id: Date.now(),
                 title,
                 message,
                 type,
-                time: new Date(),
+                time: currentDate.toISOString(), // تخزين التاريخ بتنسيق ISO
                 read: false
             };
 
+            // إضافة الإشعار في بداية المصفوفة
             notifications.unshift(notification);
             unreadCount++;
+
+            // تحديث العرض
             updateNotificationsCount();
             updateNotificationsList();
 
-            // حفظ الإشعارات في Firebase
-            firebaseHelper.saveData('notifications', notifications);
+
+
+            // عرض إشعار النظام فقط إذا تم منح الإذن مسبقاً
+            if (Notification.permission === 'granted') {
+                showSystemNotification(title, message);
+            }
+
+
+
+
+            // محاولة عرض إشعار النظام إذا كان الموقع يعمل على HTTPS أو localhost
+            if (window.location.protocol === 'https:' || window.location.hostname === 'localhost') {
+                if (Notification.permission === 'granted') {
+                    showSystemNotification(title, message);
+                } else if (Notification.permission !== 'denied') {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === 'granted') {
+                            showSystemNotification(title, message);
+                        }
+                    });
+                }
+            }
+
+            // حفظ في Firebase
+            firebaseHelper.saveData('notifications', notifications)
+                .catch(error => {
+                    console.error('Error saving notification:', error);
+                });
         }
 
         // إضافة متغير لتتبع حالة لوحة الإشعارات
@@ -3766,21 +3818,241 @@ function updateShipmentsTable() {
             document.querySelector('.notifications-count').textContent = unreadCount;
         }
 
+        // تحديث دالة updateNotificationsList لمعالجة التواريخ بشكل أفضل
         function updateNotificationsList() {
             const list = document.getElementById('notificationsList');
-            list.innerHTML = notifications.map(notification => `
-        <div class="notification-item ${notification.read ? '' : 'unread'}" 
-             onclick="markAsRead(${notification.id})">
-            <div class="notification-content">
-                <div class="notification-title">${notification.title}</div>
-                <div class="notification-message">${notification.message}</div>
-                <div class="notification-time">
-                    ${new Date(notification.time).toLocaleString('ar-EG')}
+            if (!list || !Array.isArray(notifications)) return;
+
+            list.innerHTML = notifications.map(notification => {
+                try {
+                    // التأكد من وجود وقت صالح
+                    if (!notification.time) {
+                        notification.time = new Date().toISOString();
+                    }
+
+                    // تنسيق التاريخ بالعربية
+                    const fullDate = new Intl.DateTimeFormat('ar-EG', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                        hour: 'numeric',
+                        minute: 'numeric',
+                        hour12: true
+                    }).format(new Date(notification.time));
+
+                    // حساب الوقت المنقضي
+                    const timeAgo = getTimeAgo(notification.time);
+
+                    return `
+                <div class="notification-item ${notification.read ? '' : 'unread'}" 
+                     onclick="markAsRead(${notification.id})">
+                    <div class="notification-content">
+                        <div class="notification-title">
+                            ${notification.title || 'إشعار'}
+                        </div>
+                        <div class="notification-message">
+                            ${notification.message || ''}
+                        </div>
+                        <div class="notification-time">
+                            <span class="date">
+                                <i class="far fa-calendar-alt"></i>
+                                ${fullDate}
+                            </span>
+                            <span class="time-ago">${timeAgo}</span>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    `).join('');
+            `;
+                } catch (error) {
+                    console.error('خطأ في معالجة الإشعار:', error);
+                    return ''; // إرجاع سلسلة فارغة في حالة الخطأ
+                }
+            }).join('');
         }
+
+        // دالة مساعدة لحساب الوقت المنقضي
+        function getTimeAgo(dateString) {
+            const now = new Date();
+            const date = new Date(dateString);
+            const diffInSeconds = Math.floor((now - date) / 1000);
+            const diffInMinutes = Math.floor(diffInSeconds / 60);
+            const diffInHours = Math.floor(diffInMinutes / 60);
+            const diffInDays = Math.floor(diffInHours / 24);
+            const diffInMonths = Math.floor(diffInDays / 30);
+
+            // إذا مر أكثر من شهر، نعرض التاريخ كاملاً
+            if (diffInMonths > 0) {
+                return new Intl.DateTimeFormat('ar-EG', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: 'numeric',
+                    hour12: true
+                }).format(date);
+            }
+
+            // إذا مر أكثر من يوم
+            if (diffInDays > 0) {
+                return `منذ ${diffInDays} ${diffInDays === 1 ? 'يوم' : 'أيام'}`;
+            }
+
+            // إذا مر أكثر من ساعة
+            if (diffInHours > 0) {
+                return `منذ ${diffInHours} ${diffInHours === 1 ? 'ساعة' : 'ساعات'}`;
+            }
+
+            // إذا مر أكثر من دقيقة
+            if (diffInMinutes > 0) {
+                return `منذ ${diffInMinutes} ${diffInMinutes === 1 ? 'دقيقة' : 'دقائق'}`;
+            }
+
+            // إذا أقل من دقيقة
+            return 'منذ لحظات';
+        }
+
+        // تحديث دالة addNotification لضمان تخزين التاريخ بشكل صحيح
+        function addNotification(title, message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                title,
+                message,
+                type,
+                time: new Date().toISOString(), // تخزين التاريخ كسلسلة ISO
+                read: false
+            };
+
+            notifications.unshift(notification);
+            unreadCount++;
+            updateNotificationsCount();
+            updateNotificationsList();
+
+
+            // طلب إذن لإظهار الإشعارات
+            if (Notification.permission === 'granted') {
+                showSystemNotification(title, message);
+            } else if (Notification.permission !== 'denied') {
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showSystemNotification(title, message);
+                    }
+                });
+            }
+
+
+
+            // حفظ في Firebase
+            firebaseHelper.saveData('notifications', notifications)
+                .catch(error => {
+                    console.error('Error saving notification:', error);
+                });
+        }
+
+
+
+
+        // دالة لإظهار إشعار النظام
+        // دالة لإظهار إشعار النظام مع صوت
+        // تعديل دالة showSystemNotification
+function showSystemNotification(title, message) {
+    // التحقق من الإذن المخزن
+    const permission = localStorage.getItem('notificationPermission') || Notification.permission;
+    
+    if (permission === 'granted') {
+        // تشغيل الصوت مباشرة
+        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=notification-sound-7062.mp3');
+        audio.volume = 0.5;
+        audio.play().catch(error => {
+            console.error('خطأ في تشغيل الصوت:', error);
+        });
+
+        // إنشاء إشعار النظام
+        const options = {
+            body: message,
+            icon: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
+            badge: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
+            silent: true,
+            requireInteraction: true
+        };
+
+        const notification = new Notification(title, options);
+
+        notification.onclick = function() {
+            window.focus();
+            notification.close();
+        };
+
+        setTimeout(() => {
+            notification.close();
+        }, 5000);
+    }
+}
+
+        // تحديث دالة addNotification لتطلب الإذن قبل عرض الإشعارات
+        function addNotification(title, message, type = 'info') {
+            const notification = {
+                id: Date.now(),
+                title,
+                message,
+                type,
+                time: new Date().toISOString(),
+                read: false
+            };
+
+            notifications.unshift(notification);
+            unreadCount++;
+
+            // تحديث العرض
+            updateNotificationsCount();
+            updateNotificationsList();
+
+            // عرض إشعار النظام مباشرة دون طلب إذن جديد
+    showSystemNotification(title, message);
+
+            // حفظ في Firebase
+            firebaseHelper.saveData('notifications', notifications)
+                .catch(error => {
+                    console.error('Error saving notification:', error);
+                });
+        }
+
+
+
+
+
+        // إضافة دالة لفحص إذن الإشعارات عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    // التحقق من وجود إذن مخزن
+    const storedPermission = localStorage.getItem('notificationPermission');
+    
+    if (!storedPermission) {
+        // طلب الإذن مرة واحدة فقط إذا لم يكن مخزناً
+        Notification.requestPermission().then(permission => {
+            localStorage.setItem('notificationPermission', permission);
+        });
+    }
+
+    showSection('home');
+    initNotifications();
+});
+
+        // إضافة دالة للتحقق من حالة الإشعارات
+        function checkNotificationPermission() {
+            return new Promise((resolve) => {
+                if (Notification.permission === 'granted') {
+                    resolve(true);
+                } else if (Notification.permission === 'denied') {
+                    resolve(false);
+                } else {
+                    Notification.requestPermission()
+                        .then(permission => {
+                            resolve(permission === 'granted');
+                        });
+                }
+            });
+        }
+
+
 
         // تعديل دالة markAsRead في الملف الرئيسي
         function markAsRead(id) {
@@ -3909,6 +4181,22 @@ function updateShipmentsTable() {
 
         // إضافة مراقب للإشعارات في Firebase
         function initNotifications() {
+
+
+            console.log('تهيئة نظام الإشعارات...');
+
+
+            // طلب إذن الإشعارات مرة واحدة فقط عند بدء التطبيق
+    if (Notification.permission === 'default') {
+        Notification.requestPermission().then(permission => {
+            console.log('نتيجة طلب الإذن:', permission);
+            localStorage.setItem('notificationPermission', permission);
+        });
+    }
+
+
+
+
             firebase.database().ref('notifications').on('value', (snapshot) => {
                 const data = snapshot.val();
                 if (data) {
@@ -4767,8 +5055,10 @@ function updateShipmentsTable() {
         <button onclick="paginateProfitsTable(${pageNumber + 1})" 
                 ${pageNumber === totalPages ? 'disabled' : ''}>
             التالي
-        </button>
-    `;
+        </button> `;
+
+
+
         }
 
 
