@@ -1819,6 +1819,9 @@
         <div class="modal-content">
             <span class="close" onclick="closeShippingSettings()">&times;</span>
             <h2>إعدادات أسعار الشحن</h2>
+            <button class="new-invoice-btn" id="addGovernorateBtn" style="margin-bottom: 15px;">
+            <i class="fas fa-plus"></i> إضافة محافظة جديدة
+        </button>
             <table class="invoice-table">
                 <thead>
                     <tr>
@@ -5184,6 +5187,42 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
+
+
+
+
+        
+document.addEventListener('DOMContentLoaded', function () {
+    const addBtn = document.getElementById('addGovernorateBtn');
+    if (addBtn) {
+        addBtn.onclick = function () {
+            const newGov = prompt('أدخل اسم المحافظة الجديدة:');
+            if (newGov && newGov.trim()) {
+                const tbody = document.getElementById('shippingRatesTable');
+                // تحقق إذا كانت المحافظة موجودة بالفعل
+                const exists = Array.from(tbody.querySelectorAll('tr')).some(tr =>
+                    tr.children[0].textContent.trim() === newGov.trim()
+                );
+                if (exists) {
+                    alert('هذه المحافظة موجودة بالفعل.');
+                    return;
+                }
+                // إضافة صف جديد للجدول
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${newGov.trim()}</td>
+                    <td>
+                        <input type="number" class="shipping-rate" value="0" data-governorate="${newGov.trim()}" min="0">
+                    </td>
+                    <td>
+                        <input type="number" class="shipping-duration" value="1" data-governorate="${newGov.trim()}" min="1">
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            }
+        };
+    }
+});
 
 
 
