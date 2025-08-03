@@ -1704,7 +1704,7 @@
                             <option value="مطروح">مطروح</option>
                             <option value="الأقصر">الأقصر</option>
                             <option value="قنا">قنا</option>
-                            <option value=" اطراف القاهره والجيزه"> اطراف القاهره والجيزه</option>
+                            <option value="شمال سيناء">شمال سيناء</option>
                             <option value="سوهاج">سوهاج</option>
                         </select>
                     </div>
@@ -1820,8 +1820,8 @@
             <span class="close" onclick="closeShippingSettings()">&times;</span>
             <h2>إعدادات أسعار الشحن</h2>
             <button class="new-invoice-btn" id="addGovernorateBtn" style="margin-bottom: 15px;">
-            <i class="fas fa-plus"></i> إضافة محافظة جديدة
-        </button>
+                <i class="fas fa-plus"></i> إضافة محافظة جديدة
+            </button>
             <table class="invoice-table">
                 <thead>
                     <tr>
@@ -1894,7 +1894,7 @@
                         <option value="مطروح">مطروح</option>
                         <option value="الأقصر">الأقصر</option>
                         <option value="قنا">قنا</option>
-                        <option value="اطراف القاهره والجيزه "> اطراف القاهره والجيزه</option>
+                        <option value="شمال سيناء"> سيناء</option>
                         <option value="سوهاج">سوهاج</option>
                     </select>
                 </div>
@@ -3190,74 +3190,86 @@
         }
 
         function updateShipmentStatus(index, status) {
-            const invoice = invoices[index];
-            let notificationMessage = '';
+    const invoice = invoices[index];
+    let notificationMessage = '';
 
-            // تحديث حالة الفاتورة
-            if (status === 'paid') {
-                invoice.paid = true;
-                // لا نغير status هنا
-                notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
-            } else {
-                invoice.status = status;
-                invoice.paid = false;
+    // تحديث حالة الفاتورة
+    if (status === 'paid') {
+        invoice.paid = true;
+        invoice.status = 'delivered'; // تحديث الحالة عند الدفع
+        notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
+    } else {
+        invoice.paid = false;
+        invoice.status = status;
 
-                switch (status) {
-                    case 'delivered':
-                        notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
-                        break;
-                    case 'cancelled':
-                        notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
-                        break;
-                    case 'returned':
-                        notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
-                        break;
-                    default:
-                        notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
-                }
-            }
-
-            // حفظ في Firebase وتحديث الواجهة
-            firebaseHelper.saveData('invoices', invoices)
-                .then(() => {
-                    // تحديث كلا الجدولين
-                    updateShipmentsTable();
-                    updateInvoicesTable();
-
-                    // إضافة إشعار
-                    addNotification(
-                        'تحديث حالة الشحنة',
-                        notificationMessage,
-                        'info'
-                    );
-
-                    // تمييز الصف المحدث في كلا الجدولين
-                    setTimeout(() => {
-                        // تمييز في جدول الشحنات
-                        const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
-                        if (shipmentRow) {
-                            shipmentRow.classList.add('highlight-row');
-                            shipmentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
-                        }
-
-                        // تمييز في جدول الفواتير
-                        const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
-                        if (invoiceRow) {
-                            invoiceRow.classList.add('highlight-row');
-                            setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
-                        }
-                    }, 100);
-                })
-                .catch(error => {
-                    console.error('خطأ في تحديث حالة الشحن:', error);
-                    addNotification(
-                        'خطأ',
-                        'حدث خطأ في تحديث حالة الشحنة',
-                        'error'
-                    );
-                });
+        switch (status) {
+            case 'delivered':
+                notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
+                break;
+            case 'cancelled':
+                notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
+                break;
+            case 'returned':
+                notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
+                break;
+            default:
+                notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
         }
+    }
+
+    // حفظ في Firebase وتحديث الواجهة
+    firebaseHelper.saveData('invoices', invoices)
+        .then(() => {
+            // تحديث كلا الجدولين
+            updateShipmentsTable();
+            updateInvoicesTable();
+
+            // إضافة إشعار
+            addNotification(
+                'تحديث حالة الشحنة',
+                notificationMessage,
+                'info'
+            );
+
+            // تمييز الصف المحدث في كلا الجدولين
+            setTimeout(() => {
+                // تمييز في جدول الشحنات
+                const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
+                if (shipmentRow) {
+                    shipmentRow.classList.add('highlight-row');
+                    shipmentRow.classList.remove('shipping-row-cancelled', 'shipping-row-returned');
+                    if (invoice.paid) {
+                        shipmentRow.classList.add('shipping-row-paid');
+                    }
+                    shipmentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
+                }
+
+                // تمييز في جدول الفواتير
+                const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
+                if (invoiceRow) {
+                    // تحديث شارة الحالة في جدول الفواتير
+                    const statusBadge = invoiceRow.querySelector('.status-badge');
+                    if (statusBadge) {
+                        statusBadge.className = `status-badge ${getInvoiceStatusClass(invoice)}`;
+                        statusBadge.textContent = getInvoiceStatusText(invoice);
+                    }
+                    
+                    // إضافة تأثير التمييز
+                    invoiceRow.classList.add('highlight-row');
+                    setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
+                }
+            }, 100);
+        })
+        .catch(error => {
+            console.error('خطأ في تحديث حالة الشحن:', error);
+            addNotification(
+                'خطأ',
+                'حدث خطأ في تحديث حالة الشحنة',
+                'error'
+            );
+        });
+}
 
         // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
         function updateInvoicesTable() {
@@ -3424,24 +3436,25 @@
 
 
         // تحديث دالة getInvoiceStatusText
-        function getInvoiceStatusText(invoice) {
-            if (!invoice.shipped) return 'جديدة';
-            if (invoice.status === 'delivered') return 'تم التسليم';
-            if (invoice.status === 'cancelled') return 'ملغاة';
-            if (invoice.status === 'returned') return 'مرتجعة';
-            if (invoice.paid) return 'مدفوعة';
-            return 'قيد التسليم';
-        }
+        // تعديل دالة getInvoiceStatusText
+function getInvoiceStatusText(invoice) {
+    if (!invoice.shipped) return 'جديدة';
+    if (invoice.paid) return 'مدفوعة'; // تم نقل هذا الشرط للأعلى
+    if (invoice.status === 'delivered') return 'تم التسليم';
+    if (invoice.status === 'cancelled') return 'ملغاة';
+    if (invoice.status === 'returned') return 'مرتجعة';
+    return 'قيد التسليم';
+}
 
-        // تحديث دالة getInvoiceStatusClass
-        function getInvoiceStatusClass(invoice) {
-            if (!invoice.shipped) return 'status-pending';
-            if (invoice.status === 'delivered') return 'status-delivered';
-            if (invoice.status === 'cancelled') return 'status-cancelled';
-            if (invoice.status === 'returned') return 'status-returned';
-            if (invoice.paid) return 'status-paid';
-            return 'status-pending';
-        }
+// تعديل دالة getInvoiceStatusClass
+function getInvoiceStatusClass(invoice) {
+    if (!invoice.shipped) return 'status-pending';
+    if (invoice.paid) return 'status-paid'; // تم نقل هذا الشرط للأعلى
+    if (invoice.status === 'delivered') return 'status-delivered';
+    if (invoice.status === 'cancelled') return 'status-cancelled';
+    if (invoice.status === 'returned') return 'status-returned';
+    return 'status-pending';
+}
 
 
 
@@ -3957,39 +3970,39 @@
         // دالة لإظهار إشعار النظام
         // دالة لإظهار إشعار النظام مع صوت
         // تعديل دالة showSystemNotification
-function showSystemNotification(title, message) {
-    // التحقق من الإذن المخزن
-    const permission = localStorage.getItem('notificationPermission') || Notification.permission;
-    
-    if (permission === 'granted') {
-        // تشغيل الصوت مباشرة
-        const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=notification-sound-7062.mp3');
-        audio.volume = 0.5;
-        audio.play().catch(error => {
-            console.error('خطأ في تشغيل الصوت:', error);
-        });
+        function showSystemNotification(title, message) {
+            // التحقق من الإذن المخزن
+            const permission = localStorage.getItem('notificationPermission') || Notification.permission;
 
-        // إنشاء إشعار النظام
-        const options = {
-            body: message,
-            icon: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
-            badge: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
-            silent: true,
-            requireInteraction: true
-        };
+            if (permission === 'granted') {
+                // تشغيل الصوت مباشرة
+                const audio = new Audio('https://cdn.pixabay.com/download/audio/2021/08/04/audio_0625c1539c.mp3?filename=notification-sound-7062.mp3');
+                audio.volume = 0.5;
+                audio.play().catch(error => {
+                    console.error('خطأ في تشغيل الصوت:', error);
+                });
 
-        const notification = new Notification(title, options);
+                // إنشاء إشعار النظام
+                const options = {
+                    body: message,
+                    icon: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
+                    badge: 'https://i.postimg.cc/43cfrD4g/logo.jpg',
+                    silent: true,
+                    requireInteraction: true
+                };
 
-        notification.onclick = function() {
-            window.focus();
-            notification.close();
-        };
+                const notification = new Notification(title, options);
 
-        setTimeout(() => {
-            notification.close();
-        }, 10000);
-    }
-}
+                notification.onclick = function () {
+                    window.focus();
+                    notification.close();
+                };
+
+                setTimeout(() => {
+                    notification.close();
+                }, 10000);
+            }
+        }
 
         // تحديث دالة addNotification لتطلب الإذن قبل عرض الإشعارات
         function addNotification(title, message, type = 'info') {
@@ -4010,7 +4023,7 @@ function showSystemNotification(title, message) {
             updateNotificationsList();
 
             // عرض إشعار النظام مباشرة دون طلب إذن جديد
-    showSystemNotification(title, message);
+            showSystemNotification(title, message);
 
             // حفظ في Firebase
             firebaseHelper.saveData('notifications', notifications)
@@ -4024,20 +4037,20 @@ function showSystemNotification(title, message) {
 
 
         // إضافة دالة لفحص إذن الإشعارات عند تحميل الصفحة
-document.addEventListener('DOMContentLoaded', () => {
-    // التحقق من وجود إذن مخزن
-    const storedPermission = localStorage.getItem('notificationPermission');
-    
-    if (!storedPermission) {
-        // طلب الإذن مرة واحدة فقط إذا لم يكن مخزناً
-        Notification.requestPermission().then(permission => {
-            localStorage.setItem('notificationPermission', permission);
-        });
-    }
+        document.addEventListener('DOMContentLoaded', () => {
+            // التحقق من وجود إذن مخزن
+            const storedPermission = localStorage.getItem('notificationPermission');
 
-    showSection('home');
-    initNotifications();
-});
+            if (!storedPermission) {
+                // طلب الإذن مرة واحدة فقط إذا لم يكن مخزناً
+                Notification.requestPermission().then(permission => {
+                    localStorage.setItem('notificationPermission', permission);
+                });
+            }
+
+            showSection('home');
+            initNotifications();
+        });
 
         // إضافة دالة للتحقق من حالة الإشعارات
         function checkNotificationPermission() {
@@ -4190,12 +4203,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
             // طلب إذن الإشعارات مرة واحدة فقط عند بدء التطبيق
-    if (Notification.permission === 'default') {
-        Notification.requestPermission().then(permission => {
-            console.log('نتيجة طلب الإذن:', permission);
-            localStorage.setItem('notificationPermission', permission);
-        });
-    }
+            if (Notification.permission === 'default') {
+                Notification.requestPermission().then(permission => {
+                    console.log('نتيجة طلب الإذن:', permission);
+                    localStorage.setItem('notificationPermission', permission);
+                });
+            }
 
 
 
@@ -4628,12 +4641,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // إضافة الدوال الجديدة في ملف JavaScript
         let shippingRates = {};
 
+        // ...existing code...
         function showShippingSettings() {
             const modal = document.getElementById('shippingSettingsModal');
             const tbody = document.getElementById('shippingRatesTable');
 
-            // قائمة المحافظات المصرية
-            const governorates = [
+            // قائمة المحافظات الثابتة
+            const staticGovernorates = [
                 "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "البحر الأحمر", "البحيرة",
                 "الفيوم", "الغربية", "الإسماعيلية", "المنوفية", "المنيا", "القليوبية",
                 "الوادي الجديد", "السويس", "اسوان", "اسيوط", "بني سويف", "بورسعيد",
@@ -4641,37 +4655,72 @@ document.addEventListener('DOMContentLoaded', () => {
                 "قنا", " اطراف القاهره والجيزه", "سوهاج"
             ];
 
-            // تحميل الأسعار المحفوظة
-            firebaseHelper.getData('shippingRates').then(rates => {
-                shippingRates = rates || {};
+            // جميع المحافظات: الثابتة + أي محافظة جديدة أضيفت (بدون تكرار)
+            const allGovernorates = Array.from(
+                new Set([...staticGovernorates, ...Object.keys(shippingRates || {})])
+            );
 
-                // إنشاء صفوف الجدول
-                tbody.innerHTML = governorates.map(gov => {
-                    const rate = shippingRates[gov] || { price: 0, duration: 1 };
-                    return `
-                <tr>
-                    <td>${gov}</td>
-                    <td>
-                        <input type="number" 
-                               class="shipping-rate" 
-                               value="${rate.price}" 
-                               data-governorate="${gov}" 
-                               min="0">
-                    </td>
-                    <td>
-                        <input type="number" 
-                               class="shipping-duration" 
-                               value="${rate.duration}" 
-                               data-governorate="${gov}" 
-                               min="1">
-                    </td>
-                </tr>
-            `;
-                }).join('');
-            });
+            // تحميل الأسعار المحفوظة من كائن shippingRates
+            tbody.innerHTML = allGovernorates.map(gov => {
+                const rate = shippingRates[gov] || { price: 0, duration: 1 };
+                return `
+            <tr>
+                <td>${gov}</td>
+                <td>
+                    <input type="number" 
+                           class="shipping-rate" 
+                           value="${rate.price}" 
+                           data-governorate="${gov}" 
+                           min="0">
+                </td>
+                <td>
+                    <input type="number" 
+                           class="shipping-duration" 
+                           value="${rate.duration}" 
+                           data-governorate="${gov}" 
+                           min="1">
+                </td>
+            </tr>
+        `;
+            }).join('');
 
             modal.style.display = 'block';
         }
+        // ...existing code...
+
+
+
+        // ...بعد حفظ المحافظة الجديدة في shippingRates...
+        function updateGovernorateSelects() {
+            const selects = [document.getElementById('governorate'), document.getElementById('clientGovernorate')];
+            const allGovernorates = Array.from(
+                new Set([
+                    "القاهرة", "الجيزة", "الإسكندرية", "الدقهلية", "البحر الأحمر", "البحيرة",
+                    "الفيوم", "الغربية", "الإسماعيلية", "المنوفية", "المنيا", "القليوبية",
+                    "الوادي الجديد", "السويس", "اسوان", "اسيوط", "بني سويف", "بورسعيد",
+                    "دمياط", "الشرقية", "جنوب سيناء", "كفر الشيخ", "مطروح", "الأقصر",
+                    "قنا", " اطراف القاهره والجيزه", "سوهاج",
+                    ...Object.keys(shippingRates || {})
+                ])
+            );
+            selects.forEach(select => {
+                if (select) {
+                    const current = select.value;
+                    select.innerHTML = `<option value="">اختر المحافظة</option>` +
+                        allGovernorates.map(gov => `<option value="${gov}">${gov}</option>`).join('');
+                    select.value = current;
+                }
+            });
+        }
+
+        // استدعِ هذه الدالة بعد إضافة محافظة جديدة:
+        updateGovernorateSelects();
+
+
+
+
+
+
 
         function closeShippingSettings() {
             document.getElementById('shippingSettingsModal').style.display = 'none';
@@ -4690,10 +4739,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
             });
 
+            // تحديث كائن shippingRates في الذاكرة ليشمل كل المحافظات الجديدة
+            shippingRates = rates;
+
             // حفظ في Firebase
             firebaseHelper.saveData('shippingRates', rates)
                 .then(() => {
-                    shippingRates = rates;
                     closeShippingSettings();
                     addNotification(
                         'أسعار الشحن',
@@ -5191,25 +5242,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-        
-document.addEventListener('DOMContentLoaded', function () {
-    const addBtn = document.getElementById('addGovernorateBtn');
-    if (addBtn) {
-        addBtn.onclick = function () {
-            const newGov = prompt('أدخل اسم المحافظة الجديدة:');
-            if (newGov && newGov.trim()) {
-                const tbody = document.getElementById('shippingRatesTable');
-                // تحقق إذا كانت المحافظة موجودة بالفعل
-                const exists = Array.from(tbody.querySelectorAll('tr')).some(tr =>
-                    tr.children[0].textContent.trim() === newGov.trim()
-                );
-                if (exists) {
-                    alert('هذه المحافظة موجودة بالفعل.');
-                    return;
-                }
-                // إضافة صف جديد للجدول
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
+
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const addBtn = document.getElementById('addGovernorateBtn');
+            if (addBtn) {
+                addBtn.onclick = function () {
+                    const newGov = prompt('أدخل اسم المحافظة الجديدة:');
+                    if (newGov && newGov.trim()) {
+                        const tbody = document.getElementById('shippingRatesTable');
+                        // تحقق إذا كانت المحافظة موجودة بالفعل
+                        const exists = Array.from(tbody.querySelectorAll('tr')).some(tr =>
+                            tr.children[0].textContent.trim() === newGov.trim()
+                        );
+                        if (exists) {
+                            alert('هذه المحافظة موجودة بالفعل.');
+                            return;
+                        }
+                        // إضافة صف جديد للجدول
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
                     <td>${newGov.trim()}</td>
                     <td>
                         <input type="number" class="shipping-rate" value="0" data-governorate="${newGov.trim()}" min="0">
@@ -5218,11 +5270,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         <input type="number" class="shipping-duration" value="1" data-governorate="${newGov.trim()}" min="1">
                     </td>
                 `;
-                tbody.appendChild(tr);
+                        tbody.appendChild(tr);
+
+                        // حفظ المحافظة الجديدة في قاعدة البيانات مع بقية المحافظات
+                        // تحديث كائن shippingRates في الذاكرة
+                        if (typeof shippingRates !== "object" || !shippingRates) window.shippingRates = {};
+                        shippingRates[newGov.trim()] = { price: 0, duration: 1 };
+
+                        // حفظ في Firebase مباشرة
+                        firebaseHelper.saveData('shippingRates', shippingRates)
+                            .then(() => {
+                                addNotification('إضافة محافظة', `تمت إضافة المحافظة "${newGov.trim()}" بنجاح`, 'success');
+                            })
+                            .catch(error => {
+                                console.error('خطأ في حفظ المحافظة الجديدة:', error);
+                                addNotification('خطأ', 'حدث خطأ أثناء حفظ المحافظة الجديدة', 'error');
+                            });
+                    }
+                };
             }
-        };
-    }
-});
+        });
+
 
 
 
