@@ -3020,10 +3020,10 @@
 
         // تعديل دالة updateShipmentsTable لعرض تاريخ الشحن بدلاً من تاريخ الفاتورة
         function updateShipmentsTable() {
-            const shipmentsSection = document.getElementById('shipping');
+    const shipmentsSection = document.getElementById('shipping');
 
-            if (!document.getElementById('shipmentsTable')) {
-                shipmentsSection.innerHTML = `
+    if (!document.getElementById('shipmentsTable')) {
+        shipmentsSection.innerHTML = `
             <h2 class="section-title">قسم الشحنات</h2>
             <table id="shipmentsTable" class="invoice-table">
                 <thead>
@@ -3040,13 +3040,14 @@
             </table>
             <div id="shipmentsTable-pagination" class="pagination-controls"></div>
         `;
-            }
+    }
 
-            window.shipmentsTableData = invoices
-                .filter(inv => inv.shipped)
-                .map(inv => {
-                    const invoiceIndex = invoices.indexOf(inv);
-                    return `
+    // تحضير بيانات الشحنات
+    window.shipmentsTableData = invoices
+        .filter(inv => inv.shipped)
+        .map(inv => {
+            const invoiceIndex = invoices.indexOf(inv);
+            return `
                 <tr class="${getShipmentRowClass(inv)}" 
                     data-invoice-number="${inv.number}"
                     data-customer-name="${inv.customer}">
@@ -3072,10 +3073,17 @@
                     </td>
                 </tr>
             `;
-                });
+        });
 
-            paginateShipmentsTable(currentShipmentsPage);
-        }
+    // حساب إجمالي عدد الصفحات
+    const totalPages = Math.ceil(window.shipmentsTableData.length / 10);
+    
+    // تعيين الصفحة الحالية إلى آخر صفحة
+    currentShipmentsPage = totalPages;
+    
+    // عرض آخر صفحة مباشرة
+    paginateShipmentsTable(totalPages);
+}
 
 
         // إضافة دالة جديدة لحذف الفاتورة من الشحنات
@@ -3291,29 +3299,29 @@
 }
 
         // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
-        function updateInvoicesTable() {
-            const invoicesSection = document.getElementById('invoices');
+       function updateInvoicesTable() {
+    const invoicesSection = document.getElementById('invoices');
 
-            // إضافة مربع البحث وزر إنشاء فاتورة جديدة
-            if (!document.querySelector('.invoice-controls')) {
-                const controlsDiv = document.createElement('div');
-                controlsDiv.className = 'invoice-controls';
-                controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
-                controlsDiv.innerHTML = `
+    // إضافة مربع البحث وزر إنشاء فاتورة جديدة
+    if (!document.querySelector('.invoice-controls')) {
+        const controlsDiv = document.createElement('div');
+        controlsDiv.className = 'invoice-controls';
+        controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
+        controlsDiv.innerHTML = `
             <button class="new-invoice-btn" onclick="toggleInvoiceForm()">إنشاء فاتورة جديدة</button>
             <div class="search-box">
                 <input type="text" id="invoiceSearch" placeholder="البحث برقم الفاتورة أو اسم العميل" class="search-input">
                 <i class="fas fa-search search-icon"></i>
             </div>
-                    `;
+        `;
 
-                const titleElement = invoicesSection.querySelector('.section-title');
-                titleElement.insertAdjacentElement('afterend', controlsDiv);
-            }
+        const titleElement = invoicesSection.querySelector('.section-title');
+        titleElement.insertAdjacentElement('afterend', controlsDiv);
+    }
 
-            // إنشاء جدول الفواتير وعناصر التنقل
-            if (!document.getElementById('invoicesTable')) {
-                invoicesSection.innerHTML += `
+    // إنشاء جدول الفواتير وعناصر التنقل
+    if (!document.getElementById('invoicesTable')) {
+        invoicesSection.innerHTML += `
             <table id="invoicesTable" class="invoice-table">
                 <thead>
                     <tr>
@@ -3328,14 +3336,20 @@
             </table>
             <div id="invoicesPagination" style="margin-top: 20px; text-align: center;"></div>
         `;
-            }
+    }
 
-            // عرض نفس الصفحة الحالية بدلاً من الرجوع للصفحة الأولى
-            paginateInvoices(currentInvoicesPage);
+    // حساب إجمالي عدد الصفحات
+    const totalPages = Math.ceil(invoices.length / 10);
+    
+    // تعيين الصفحة الحالية إلى آخر صفحة
+    currentInvoicesPage = totalPages;
+    
+    // عرض آخر صفحة مباشرة
+    paginateInvoices(totalPages);
 
-            // إضافة وظيفة البحث
-            setupInvoiceSearch();
-        }
+    // إضافة وظيفة البحث
+    setupInvoiceSearch();
+}
 
 
 
@@ -5321,5 +5335,6 @@ function getInvoiceStatusClass(invoice) {
 </body>
 
 </html>
+
 
 
