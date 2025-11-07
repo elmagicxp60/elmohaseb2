@@ -5,8 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-
-    <!-- PWA Meta Tags -->
     <link rel="manifest" href="manifest.json">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -16,16 +14,67 @@
     <meta name="msapplication-navbutton-color" content="#3498db">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="msapplication-starturl" content="./index.html">
-    
-    <!-- Icons -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- أيقونات iOS -->
     <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
 
 
-    
-    <title> FARFASHA SYSTEM </title>
+    <title> FARFASHA SYSTEM
+    </title>
+
     <style>
+
+
+
+
+    /* منع التمرير الأفقي العام وتحسين صندوق القياس */
+    html, body {
+        box-sizing: border-box;
+        overflow-x: hidden; /* منع التمرير الأفقي */
+    }
+    *, *:before, *:after { box-sizing: inherit; }
+
+    /* ضبط body ليتصرف بشكل مرن دون توليد overflow أفقي على شاشات صغيرة */
+    body {
+        font-family: 'Segoe UI', 'Arial', sans-serif;
+        margin: 0;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        display: flex;
+        min-height: 100vh;
+        /* السماح للعناصر بالانكماش لمنع تجاوز العرض */
+        flex-wrap: nowrap;
+    }
+
+    /* تعديل الشريط الجانبي ليكون ضمن 100vh ويحتوي تمرير عمودي إن لزم */
+    .sidebar {
+        width: 280px;
+        height: 100vh; /* بدلاً من 150vh */
+        overflow-y: auto; /* تمكين التمرير العمودي داخل الشريط */
+        background: linear-gradient(180deg, #2c3e50 0%, #3498db 100%);
+        padding: 25px;
+        box-shadow: 4px 0 15px rgba(0, 0, 0, 0.2);
+        box-sizing: border-box;
+        flex: 0 0 280px;
+    }
+
+    /* التأكد أن المحتوى الرئيسي يمكن أن ينكمش بدون توليد overflow */
+    .main-content {
+        flex: 1 1 auto;
+        min-width: 0; /* مهم لمنع overflow داخل flex containers */
+        padding: 30px;
+        background: rgba(255, 255, 255, 0.9);
+        margin: 20px;
+        border-radius: 15px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    }
+
+
+
+
+
         .pagination-controls {
             display: flex;
             justify-content: center;
@@ -1325,6 +1374,9 @@
 
 
 
+
+
+
         /* Splash Screen Styles */
 .splash-screen {
     position: fixed;
@@ -1361,8 +1413,80 @@
 
 
 
-        
+
+
+    /* ===== إضافة تحسينات موبايل للـ sidebar, topbar, overlay ===== */
+    @media (max-width: 768px) {
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            width: 260px;
+            transform: translateX(-110%);
+            transition: transform 0.28s ease;
+            z-index: 1100;
+        }
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .topbar-mobile {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #3498db;
+            color: #fff;
+            position: sticky;
+            top: 0;
+            z-index: 1200;
+            gap: 10px;
+        }
+        .topbar-mobile .hamburger {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .topbar-mobile .topbar-title {
+            font-weight: bold;
+            font-size: 16px;
+            text-align: center;
+            flex: 1;
+        }
+
+        .overlay-sidebar {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            z-index: 1050;
+        }
+        .overlay-sidebar.show {
+            display: block;
+        }
+
+        .main-content { margin: 0.5rem; padding: 14px; border-radius: 10px; }
+        .modal-content { width: 95% !important; max-width: 100% !important; margin: 20px auto !important; }
+        .invoice-table, .profits-table { display: block; width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        input[type="text"], input[type="number"], select, .search-input { font-size: 16px; padding: 10px; }
+    }
+
+    @media (max-width: 420px) {
+        .topbar-mobile .topbar-title { font-size: 14px; }
+        .button { padding: 10px; }
+        .card-icon { width: 42px; height: 42px; font-size: 1.2rem; }
+    }
+    /* ===== نهاية تحسينات الموبايل ===== */
+
+
+
+
     </style>
+
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -1590,7 +1714,25 @@
 
 
 
-    
+
+
+
+
+<!-- TOPBAR للهاتف -->
+<div class="topbar-mobile" id="topbarMobile" style="display:none;">
+    <button class="hamburger" id="hamburgerBtn" aria-label="فتح القائمة">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="topbar-title">FARFASHA SYSTEM</div>
+    <div style="width:30px"></div>
+</div>
+
+<!-- Overlay لشريط الهاتف -->
+<div class="overlay-sidebar" id="overlaySidebar" onclick="closeSidebarMobile()"></div>
+
+
+
+
     <div class="sidebar">
         <h1><i class="fas fa-calculator"></i> FARFASHA SYSTEM</h1>
 
@@ -2329,7 +2471,7 @@
                 <div class="modal-content receipt-style">
                     <span class="close" onclick="this.parentElement.parentElement.remove()">&times;</span>
                     <div class="receipt-header">
-<img src="https://i.postimg.cc/43cfrD4g/logo.jpg" alt="Farfasha Logo" style="max-width: 100%; height: auto;" />
+                       <img src="https://i.postimg.cc/43cfrD4g/logo.jpg" alt="Farfasha Logo" style="max-width: 100%; height: auto;" />
 
                         <h2>فاتورة مبيعات</h2>
                         <h3> فرفشة ستور</h2>
@@ -3267,89 +3409,89 @@
         }
 
         function updateShipmentStatus(index, status) {
-    const invoice = invoices[index];
-    let notificationMessage = '';
+            const invoice = invoices[index];
+            let notificationMessage = '';
 
-    // تحديث حالة الفاتورة
-    if (status === 'paid') {
-        invoice.paid = true;
-        invoice.status = 'delivered'; // تحديث الحالة عند الدفع
-        notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
-    } else {
-        invoice.paid = false;
-        invoice.status = status;
+            // تحديث حالة الفاتورة
+            if (status === 'paid') {
+                invoice.paid = true;
+                invoice.status = 'delivered'; // تحديث الحالة عند الدفع
+                notificationMessage = `تم تأكيد دفع شحنة الفاتورة ${invoice.number}`;
+            } else {
+                invoice.paid = false;
+                invoice.status = status;
 
-        switch (status) {
-            case 'delivered':
-                notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
-                break;
-            case 'cancelled':
-                notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
-                break;
-            case 'returned':
-                notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
-                break;
-            default:
-                notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
+                switch (status) {
+                    case 'delivered':
+                        notificationMessage = `تم تسليم شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    case 'cancelled':
+                        notificationMessage = `تم إلغاء شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    case 'returned':
+                        notificationMessage = `تم إرجاع شحنة الفاتورة ${invoice.number}`;
+                        break;
+                    default:
+                        notificationMessage = `تم تحديث حالة شحنة الفاتورة ${invoice.number}`;
+                }
+            }
+
+            // حفظ في Firebase وتحديث الواجهة
+            firebaseHelper.saveData('invoices', invoices)
+                .then(() => {
+                    // تحديث كلا الجدولين
+                    updateShipmentsTable();
+                    updateInvoicesTable();
+
+                    // إضافة إشعار
+                    addNotification(
+                        'تحديث حالة الشحنة',
+                        notificationMessage,
+                        'info'
+                    );
+
+                    // تمييز الصف المحدث في كلا الجدولين
+                    setTimeout(() => {
+                        // تمييز في جدول الشحنات
+                        const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
+                        if (shipmentRow) {
+                            shipmentRow.classList.add('highlight-row');
+                            shipmentRow.classList.remove('shipping-row-cancelled', 'shipping-row-returned');
+                            if (invoice.paid) {
+                                shipmentRow.classList.add('shipping-row-paid');
+                            }
+                            shipmentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                            setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
+                        }
+
+                        // تمييز في جدول الفواتير
+                        const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
+                        if (invoiceRow) {
+                            // تحديث شارة الحالة في جدول الفواتير
+                            const statusBadge = invoiceRow.querySelector('.status-badge');
+                            if (statusBadge) {
+                                statusBadge.className = `status-badge ${getInvoiceStatusClass(invoice)}`;
+                                statusBadge.textContent = getInvoiceStatusText(invoice);
+                            }
+
+                            // إضافة تأثير التمييز
+                            invoiceRow.classList.add('highlight-row');
+                            setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
+                        }
+                    }, 100);
+                })
+                .catch(error => {
+                    console.error('خطأ في تحديث حالة الشحن:', error);
+                    addNotification(
+                        'خطأ',
+                        'حدث خطأ في تحديث حالة الشحنة',
+                        'error'
+                    );
+                });
         }
-    }
-
-    // حفظ في Firebase وتحديث الواجهة
-    firebaseHelper.saveData('invoices', invoices)
-        .then(() => {
-            // تحديث كلا الجدولين
-            updateShipmentsTable();
-            updateInvoicesTable();
-
-            // إضافة إشعار
-            addNotification(
-                'تحديث حالة الشحنة',
-                notificationMessage,
-                'info'
-            );
-
-            // تمييز الصف المحدث في كلا الجدولين
-            setTimeout(() => {
-                // تمييز في جدول الشحنات
-                const shipmentRow = document.querySelector(`#shipmentsTable tr[data-invoice-number="${invoice.number}"]`);
-                if (shipmentRow) {
-                    shipmentRow.classList.add('highlight-row');
-                    shipmentRow.classList.remove('shipping-row-cancelled', 'shipping-row-returned');
-                    if (invoice.paid) {
-                        shipmentRow.classList.add('shipping-row-paid');
-                    }
-                    shipmentRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    setTimeout(() => shipmentRow.classList.remove('highlight-row'), 6000);
-                }
-
-                // تمييز في جدول الفواتير
-                const invoiceRow = document.querySelector(`#invoicesTable tr[data-invoice-number="${invoice.number}"]`);
-                if (invoiceRow) {
-                    // تحديث شارة الحالة في جدول الفواتير
-                    const statusBadge = invoiceRow.querySelector('.status-badge');
-                    if (statusBadge) {
-                        statusBadge.className = `status-badge ${getInvoiceStatusClass(invoice)}`;
-                        statusBadge.textContent = getInvoiceStatusText(invoice);
-                    }
-                    
-                    // إضافة تأثير التمييز
-                    invoiceRow.classList.add('highlight-row');
-                    setTimeout(() => invoiceRow.classList.remove('highlight-row'), 6000);
-                }
-            }, 100);
-        })
-        .catch(error => {
-            console.error('خطأ في تحديث حالة الشحن:', error);
-            addNotification(
-                'خطأ',
-                'حدث خطأ في تحديث حالة الشحنة',
-                'error'
-            );
-        });
-}
 
         // تعديل دالة updateInvoicesTable لتضيف مربع البحث في بداية الجدول
-       function updateInvoicesTable() {
+        function updateInvoicesTable() {
     const invoicesSection = document.getElementById('invoices');
 
     // إضافة مربع البحث وزر إنشاء فاتورة جديدة
@@ -3520,24 +3662,24 @@
 
         // تحديث دالة getInvoiceStatusText
         // تعديل دالة getInvoiceStatusText
-function getInvoiceStatusText(invoice) {
-    if (!invoice.shipped) return 'جديدة';
-    if (invoice.paid) return 'مدفوعة'; // تم نقل هذا الشرط للأعلى
-    if (invoice.status === 'delivered') return 'تم التسليم';
-    if (invoice.status === 'cancelled') return 'ملغاة';
-    if (invoice.status === 'returned') return 'مرتجعة';
-    return 'قيد التسليم';
-}
+        function getInvoiceStatusText(invoice) {
+            if (!invoice.shipped) return 'جديدة';
+            if (invoice.paid) return 'مدفوعة'; // تم نقل هذا الشرط للأعلى
+            if (invoice.status === 'delivered') return 'تم التسليم';
+            if (invoice.status === 'cancelled') return 'ملغاة';
+            if (invoice.status === 'returned') return 'مرتجعة';
+            return 'قيد التسليم';
+        }
 
-// تعديل دالة getInvoiceStatusClass
-function getInvoiceStatusClass(invoice) {
-    if (!invoice.shipped) return 'status-pending';
-    if (invoice.paid) return 'status-paid'; // تم نقل هذا الشرط للأعلى
-    if (invoice.status === 'delivered') return 'status-delivered';
-    if (invoice.status === 'cancelled') return 'status-cancelled';
-    if (invoice.status === 'returned') return 'status-returned';
-    return 'status-pending';
-}
+        // تعديل دالة getInvoiceStatusClass
+        function getInvoiceStatusClass(invoice) {
+            if (!invoice.shipped) return 'status-pending';
+            if (invoice.paid) return 'status-paid'; // تم نقل هذا الشرط للأعلى
+            if (invoice.status === 'delivered') return 'status-delivered';
+            if (invoice.status === 'cancelled') return 'status-cancelled';
+            if (invoice.status === 'returned') return 'status-returned';
+            return 'status-pending';
+        }
 
 
 
@@ -3611,31 +3753,36 @@ function getInvoiceStatusClass(invoice) {
             setupProductSearch();
         }
 
-        function paginateProducts(pageNumber) {
-            const productsPerPage = 10;
-            const tbody = document.getElementById('productsTable').querySelector('tbody');
-            const totalPages = Math.ceil(products.length / productsPerPage);
-            const start = (pageNumber - 1) * productsPerPage;
-            const end = start + productsPerPage;
+        // ...existing code...
+function paginateProducts(pageNumber) {
+    const productsPerPage = 10;
+    const tbody = document.getElementById('productsTable').querySelector('tbody');
+    const totalPages = Math.ceil(products.length / productsPerPage);
+    const start = (pageNumber - 1) * productsPerPage;
+    const end = start + productsPerPage;
 
-            const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
+    const defaultImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
 
+    if (pageNumber < 1) pageNumber = 1;
+    if (pageNumber > totalPages) pageNumber = totalPages;
 
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageNumber > totalPages) pageNumber = totalPages;
+    currentProductsPage = pageNumber;
 
-            currentProductsPage = pageNumber;
-
-
-            tbody.innerHTML = products.slice(start, end).map(product => `
+    tbody.innerHTML = products.slice(start, end).map(product => {
+        // إذا كانت الصورة فارغة أو من دومين problematic استخدم الافتراضي لتجنب طلب خارجي
+        let imgSrc = product && product.image ? String(product.image).trim() : '';
+        if (!imgSrc || imgSrc.includes('via.placeholder.com') || imgSrc.startsWith('http://unavailable.domain')) {
+            imgSrc = defaultImage;
+        }
+        // أضف onerror كاحتياط
+        return `
         <tr data-product-name="${product.name}">
             <td>
-                <img src="${product.image}" 
+                <img src="${imgSrc}" 
                      style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
-                     onclick="showProductImage('${product.image}')"
-                     onerror="this.src='${defaultImage}'"
+                     onclick="showProductImage('${product.image ? product.image.replace(/'/g, "\\'") : imgSrc}')"
+                     onerror="this.onerror=null;this.src='${defaultImage}'"
                      title="انقر لتكبير الصورة">
-                     
             </td>
             <td>${product.name}</td>
             <td>${product.buyPrice}</td>
@@ -3650,10 +3797,12 @@ function getInvoiceStatusClass(invoice) {
                 </button>
             </td>
         </tr>
-    `).join('');
+    `;
+    }).join('');
 
-            updateProductsPaginationControls(pageNumber, totalPages);
-        }
+    updateProductsPaginationControls(pageNumber, totalPages);
+}
+// ...existing code...
 
         function updateProductsPaginationControls(currentPage, totalPages) {
             const paginationDiv = document.getElementById('productsPagination');
@@ -4461,6 +4610,8 @@ function getInvoiceStatusClass(invoice) {
             // حفظ في Firebase
             firebaseHelper.saveData('invoices', invoices)
                 .then(() => {
+
+
                     closeInvoiceModal();
                     clearInvoiceForm();
 
@@ -5378,6 +5529,36 @@ function getInvoiceStatusClass(invoice) {
 
 
 
+
+
+
+
+
+
+    </script>
+    <div class="notifications-panel">
+        <div id="notificationsList"></div>
+    </div>
+
+
+    <!-- ...existing code... -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registration successful');
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+
+
+
+
         // Splash Screen Logic
 document.addEventListener('DOMContentLoaded', () => {
     const splashScreen = document.getElementById('splashScreen');
@@ -5398,16 +5579,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+
+
+
+
+// ...existing code...
+    // ===== وظائف موبايل للعرض المتجاوب =====
+    function toggleSidebarMobile() {
+        const sb = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlaySidebar');
+        if (!sb || !overlay) return;
+        sb.classList.toggle('open');
+        overlay.classList.toggle('show');
+    }
+    function closeSidebarMobile() {
+        const sb = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlaySidebar');
+        if (!sb || !overlay) return;
+        sb.classList.remove('open');
+        overlay.classList.remove('show');
+    }
+
+    // إغلاق عند النقر خارج القوائم على الشاشات الصغيرة
+    function closeNotificationsOnClickOutsideForMobile(e) {
+        const sb = document.querySelector('.sidebar');
+        const overlay = document.getElementById('overlaySidebar');
+        if (overlay && overlay.classList.contains('show') && e.target === overlay) {
+            closeSidebarMobile();
+        }
+    }
+    document.addEventListener('click', closeNotificationsOnClickOutsideForMobile);
+
+    // إظهار/إخفاء الشريط العلوي بناءً على حجم الشاشة
+    function refreshTopbarVisibility() {
+        const topbar = document.getElementById('topbarMobile');
+        if (!topbar) return;
+        topbar.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+        if (window.innerWidth > 768) closeSidebarMobile();
+    }
+    window.addEventListener('resize', refreshTopbarVisibility);
+    document.addEventListener('DOMContentLoaded', refreshTopbarVisibility);
+    // ===== نهاية وظائف الموبايل =====
+// ...existing code...
+
+
+
+
+
+// ...existing code...
+    // تأكد من عمل زر الهامبرغر على الأجهزة الصغيرة
+    document.addEventListener('DOMContentLoaded', () => {
+        const hb = document.getElementById('hamburgerBtn');
+        if (hb) {
+            hb.addEventListener('click', function (e) {
+                e.stopPropagation();
+                toggleSidebarMobile();
+            });
+        }
+
+        // عند الضغط على أي رابط داخل الشريط إغلقه على الموبايل
+        const sidebar = document.querySelector('.sidebar');
+        if (sidebar) {
+            sidebar.addEventListener('click', (e) => {
+                // إذا كان العرض صغيراً وتحققنا من وجود زر مفتوح
+                if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                    // إغلاق الشريط عند اختيار عنصر (تجاهل النقر على الشريط الفارغ)
+                    const btn = e.target.closest('button, a');
+                    if (btn) closeSidebarMobile();
+                }
+            });
+        }
+
+        // غلق الشريط عند الضغط على overlay (تأكد من وجوده)
+        const overlay = document.getElementById('overlaySidebar');
+        if (overlay) {
+            overlay.addEventListener('click', closeSidebarMobile);
+        }
+    });
+ // ...existing code...
+
+
+
     </script>
-    <div class="notifications-panel">
-        <div id="notificationsList"></div>
-    </div>
+    
+
+
+
 </body>
 
 </html>
-
-
-
-
-
-
