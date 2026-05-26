@@ -290,6 +290,10 @@
 
         }
 
+        .low-stock-row {
+            background-color: rgba(242, 222, 222, 0.7);
+        }
+
         .delete-btn {
             background: #e74c3c;
             color: white;
@@ -1486,7 +1490,7 @@
 
     </style>
 
-    
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -1496,6 +1500,10 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
+
+
+
+    
     <script>
 
 
@@ -3774,9 +3782,11 @@ function paginateProducts(pageNumber) {
         if (!imgSrc || imgSrc.includes('via.placeholder.com') || imgSrc.startsWith('http://unavailable.domain')) {
             imgSrc = defaultImage;
         }
+        const quantityValue = Number(product.quantity) || 0;
+        const lowStockClass = quantityValue < 3 ? 'low-stock-row' : '';
         // أضف onerror كاحتياط
         return `
-        <tr data-product-name="${product.name}">
+        <tr class="${lowStockClass}" data-product-name="${product.name}">
             <td>
                 <img src="${imgSrc}" 
                      style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
@@ -5657,6 +5667,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
  // ...existing code...
+
+
+
+
 
 
 
