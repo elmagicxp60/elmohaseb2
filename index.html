@@ -1488,7 +1488,45 @@
 
 
 
-    </style>
+        /* Inventory badge styles */
+        .inventory-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(90deg, #fffaf0 0%, #ffffff 100%);
+            padding: 6px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(34, 49, 63, 0.06);
+            box-shadow: 0 6px 18px rgba(52, 152, 219, 0.08);
+            color: #2c3e50;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .inventory-badge .inventory-label {
+            font-weight: 500;
+            color: #55606a;
+            font-size: 0.86rem;
+            opacity: 0.95;
+        }
+
+        .inventory-badge .inventory-value {
+            font-weight: 800;
+            color: #1f2d3d;
+            direction: ltr; /* keep numbers left-to-right for readability */
+        }
+
+        .highlight-inventory {
+            animation: pop 1s ease;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0.98); box-shadow: 0 0 0 rgba(0,0,0,0); }
+            50% { transform: scale(1.06); box-shadow: 0 12px 30px rgba(52,152,219,0.16); }
+            100% { transform: scale(1); box-shadow: none; }
+        }
+
+        </style>
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
@@ -1867,7 +1905,7 @@
             </div>
         </div>
         <div id="products" class="section-content">
-            <h2 class="section-title">قسم المنتجات</h2>
+            <h2 class="section-title">قسم المنتجات <span id="inventoryTotal" class="inventory-badge" aria-live="polite"><span class="inventory-label">إجمالي المخزون</span> <span class="inventory-value">0</span></span></h2>
             <div id="productsList"></div>
         </div>
 
@@ -3753,6 +3791,8 @@
         <div id="productsPagination" style="margin-top: 20px; text-align: center;"></div>
     `;
 
+            updateProductsInventoryTotal();
+
             // عرض الصفحة الأولى من المنتجات
 
             paginateProducts(currentProductsPage);
@@ -3823,6 +3863,27 @@ function paginateProducts(pageNumber) {
         <span>صفحة ${currentPage} من ${totalPages}</span>
         <button onclick="paginateProducts(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>التالي</button>
     `;
+        }
+
+        function updateProductsInventoryTotal() {
+            const total = products.reduce((sum, product) => {
+                const price = Number(product.buyPrice) || 0;
+                const quantity = Number(product.quantity) || 0;
+                return sum + (price * quantity);
+            }, 0);
+
+            const inventoryTotalEl = document.getElementById('inventoryTotal');
+            if (inventoryTotalEl) {
+                const valueEl = inventoryTotalEl.querySelector('.inventory-value') || inventoryTotalEl;
+                const formatted = total.toLocaleString('ar-EG');
+                valueEl.textContent = formatted;
+
+                // small pop animation to draw attention
+                inventoryTotalEl.classList.remove('highlight-inventory');
+                void inventoryTotalEl.offsetWidth; // reflow to restart animation
+                inventoryTotalEl.classList.add('highlight-inventory');
+                setTimeout(() => inventoryTotalEl.classList.remove('highlight-inventory'), 1200);
+            }
         }
 
 
@@ -5677,7 +5738,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </script>
     
 
-
+ 
 
 </body>
 
