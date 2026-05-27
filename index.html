@@ -1611,7 +1611,19 @@
 
                 // تحميل المنتجات
                 if (savedProducts) {
-                    products = savedProducts;
+                    if (Array.isArray(savedProducts)) {
+                        products = savedProducts.map((product, index) => ({
+                            ...product,
+                            id: product.id != null ? Number(product.id) : Date.now() + index
+                        }));
+                    } else if (savedProducts && typeof savedProducts === 'object') {
+                        products = Object.values(savedProducts).map((product, index) => ({
+                            ...product,
+                            id: product.id != null ? Number(product.id) : Date.now() + index
+                        }));
+                    } else {
+                        products = [];
+                    }
                 }
 
                 // تحميل العملاء
@@ -2779,10 +2791,10 @@
          * This is used when the user clicks the "Add Product" button.
          */
         /******  ef4f5623-1164-45ae-b4a7-de9af82a3999  *******/
-        function showNewProductForm() {
+        function showNewProductForm(keepEditing = false) {
             const modal = document.getElementById('productModal');
             modal.style.display = 'block';
-            clearProductForm();
+            clearProductForm(keepEditing);
         }
 
         function closeProductModal() {
@@ -2817,7 +2829,7 @@
         }
 
 
-        function clearProductForm() {
+        function clearProductForm(keepEditing = false) {
             document.getElementById('productName').value = '';
             document.getElementById('buyPrice').value = '';
             document.getElementById('sellPrice').value = '';
@@ -2825,7 +2837,7 @@
             document.getElementById('imagePreview').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTUwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDE1MCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjE1MCIgaGVpZ2h0PSIxNTAiIGZpbGw9IiNFNUU1RTUiLz48dGV4dCB4PSI3NSIgeT0iNzUiIGRvbWluYW50LWJhc2VsaW5lPSJtaWRkbGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtc2l6ZT0iMTYiIGZpbGw9IiM2NjY2NjYiPtis2YjYsdipINin2YHYqtix2KfYttmK2Kk8L3RleHQ+PC9zdmc+';
 
             const modal = document.getElementById('productModal');
-            if (modal && modal.dataset.editingId) {
+            if (modal && modal.dataset.editingId && !keepEditing) {
                 delete modal.dataset.editingId; // إزالة معرف التعديل
             }
 
@@ -2847,62 +2859,32 @@
 
 
 
-        function deleteProduct(id) {
-            if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-                // تحويل المعرف إلى رقم للمقارنة
-                const productId = parseInt(id);
-
-                // فلترة المنتجات لحذف المنتج المحدد
-                products = products.filter(p => p.id !== productId);
-
-                // حفظ في Firebase
-                firebaseHelper.saveData('products', products)
-                    .then(() => {
-                        // تحديث قائمة المنتجات
-                        updateProductsList();
-                        // إضافة إشعار نجاح
-                        addNotification(
-                            'حذف منتج',
-                            'تم حذف المنتج بنجاح',
-                            'success'
-                        );
-                    })
-                    .catch(error => {
-                        console.error('خطأ في حذف المنتج:', error);
-                        // إضافة إشعار خطأ
-                        addNotification(
-                            'خطأ',
-                            'حدث خطأ أثناء حذف المنتج',
-                            'error'
-                        );
-                    });
-            }
-        }
-
+        
 
 
 
 
         function editProduct(id) {
-            const product = products.find(p => p.id === id);
-            if (product) {
-                document.getElementById('productModal').dataset.editingId = id;
-                showNewProductForm();
-
-                document.getElementById('productName').value = product.name;
-                document.getElementById('buyPrice').value = product.buyPrice;
-                document.getElementById('sellPrice').value = product.sellPrice;
-                document.getElementById('quantity').value = product.quantity;
-
-                if (product.image) {
-                    document.getElementById('imagePreview').src = product.image;
-                    document.getElementById('imagePreview').style.display = 'block';
-                    document.querySelector('.remove-image-btn').style.display = 'block';
-                }
+            const productId = String(id);
+            const product = products.find(p => String(p.id) === productId);
+            if (!product) {
+                alert('لم يتم العثور على المنتج للتعديل');
+                return;
             }
 
-            document.getElementById('productModal').dataset.editingId = product.id;
+            document.getElementById('productModal').dataset.editingId = productId;
+            showNewProductForm(true);
 
+            document.getElementById('productName').value = product.name;
+            document.getElementById('buyPrice').value = product.buyPrice;
+            document.getElementById('sellPrice').value = product.sellPrice;
+            document.getElementById('quantity').value = product.quantity;
+
+            if (product.image) {
+                document.getElementById('imagePreview').src = product.image;
+                document.getElementById('imagePreview').style.display = 'block';
+                document.querySelector('.remove-image-btn').style.display = 'block';
+            }
         }
 
 
@@ -3799,6 +3781,28 @@
 
             // إضافة وظيفة البحث
             setupProductSearch();
+            setupProductsTableActions();
+        }
+
+        function setupProductsTableActions() {
+            const table = document.getElementById('productsTable');
+            if (!table) return;
+
+            const tbody = table.querySelector('tbody');
+            if (!tbody || tbody.dataset.actionsAttached === 'true') return;
+
+            tbody.dataset.actionsAttached = 'true';
+            tbody.addEventListener('click', function (event) {
+                const button = event.target.closest('button[data-action]');
+                if (!button) return;
+                const action = button.dataset.action;
+                const id = button.dataset.id;
+                if (action === 'edit') {
+                    editProduct(id);
+                } else if (action === 'delete') {
+                    deleteProduct(id);
+                }
+            });
         }
 
         // ...existing code...
@@ -3816,7 +3820,8 @@ function paginateProducts(pageNumber) {
 
     currentProductsPage = pageNumber;
 
-    tbody.innerHTML = products.slice(start, end).map(product => {
+    tbody.innerHTML = products.slice(start, end).map((product, index) => {
+        const productId = product.id != null ? product.id : (product.id = Date.now() + start + index);
         // إذا كانت الصورة فارغة أو من دومين problematic استخدم الافتراضي لتجنب طلب خارجي
         let imgSrc = product && product.image ? String(product.image).trim() : '';
         if (!imgSrc || imgSrc.includes('via.placeholder.com') || imgSrc.startsWith('http://unavailable.domain')) {
@@ -3826,7 +3831,7 @@ function paginateProducts(pageNumber) {
         const lowStockClass = quantityValue < 3 ? 'low-stock-row' : '';
         // أضف onerror كاحتياط
         return `
-        <tr class="${lowStockClass}" data-product-name="${product.name}">
+        <tr class="${lowStockClass}" data-product-name="${product.name}" data-product-id="${productId}">
             <td>
                 <img src="${imgSrc}" 
                      style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; cursor: pointer;"
@@ -3839,10 +3844,10 @@ function paginateProducts(pageNumber) {
             <td>${product.sellPrice}</td>
             <td>${product.quantity}</td>
             <td>
-                <button class="action-btn edit-btn" onclick="editProduct(${product.id})" title="تعديل">
+                <button type="button" class="action-btn edit-btn" data-action="edit" data-id="${productId}" title="تعديل">
                     <i class="fas fa-edit"></i>
                 </button>
-                <button class="action-btn delete-invoice-btn" onclick="deleteProduct(${product.id})" title="حذف">
+                <button type="button" class="action-btn delete-invoice-btn" data-action="delete" data-id="${productId}" title="حذف">
                     <i class="fas fa-trash"></i>
                 </button>
             </td>
@@ -4544,8 +4549,9 @@ function paginateProducts(pageNumber) {
                 }
 
                 const editingId = document.getElementById('productModal').dataset.editingId;
+                const productId = editingId ? String(editingId) : String(Date.now());
                 const productData = {
-                    id: editingId ? parseInt(editingId) : Date.now(),
+                    id: productId,
                     name: productName,
                     buyPrice: buyPrice,
                     sellPrice: sellPrice,
@@ -4558,7 +4564,7 @@ function paginateProducts(pageNumber) {
 
                 // تحديث المصفوفة المحلية
                 if (editingId) {
-                    const index = products.findIndex(p => p.id === parseInt(editingId));
+                    const index = products.findIndex(p => String(p.id) === productId);
                     if (index !== -1) {
                         products[index] = productData;
                     }
@@ -4568,8 +4574,8 @@ function paginateProducts(pageNumber) {
 
                 // تحديث واجهة المستخدم فوراً
                 showSection('products');
-                const productIndex = products.findIndex(p => p.name === productName);
-                const page = Math.floor(productIndex / 10) + 1;
+                const productIndex = products.findIndex(p => String(p.id) === productId);
+                const page = productIndex >= 0 ? Math.floor(productIndex / 10) + 1 : 1;
                 paginateProducts(page);
 
                 // حفظ في Firebase في الخلفية
@@ -4611,20 +4617,16 @@ function paginateProducts(pageNumber) {
 
         function deleteProduct(id) {
             if (confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-                // تحديث المصفوفة المحلية أولاً
-                products = products.filter(p => p.id !== parseInt(id));
+                const productId = String(id);
+                products = products.filter(p => String(p.id) !== productId);
 
-                // تحديث واجهة المستخدم فوراً
                 updateProductsList();
-
-                // إضافة إشعار نجاح
                 addNotification(
                     'حذف منتج',
                     'تم حذف المنتج بنجاح',
                     'success'
                 );
 
-                // حفظ في Firebase بعد تحديث الواجهة
                 firebaseHelper.saveData('products', products)
                     .catch(error => {
                         console.error('خطأ في حذف المنتج:', error);
