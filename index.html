@@ -1526,6 +1526,40 @@
             100% { transform: scale(1); box-shadow: none; }
         }
 
+        /* Add-client bubble */
+        .add-client-bubble {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: linear-gradient(90deg,#fff 0%,#fffdfa 100%);
+            padding: 8px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+            color: #333;
+            font-size: 0.92rem;
+            margin-top: 6px;
+        }
+
+        .add-client-bubble .add-client-btn {
+            background: #27ae60;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .add-client-bubble .add-client-btn:hover {
+            background: #219150;
+        }
+
+        .add-client-bubble.success {
+            background: linear-gradient(90deg,#e8f8ef 0%,#ffffff 100%);
+            border-color: rgba(39,174,96,0.15);
+        }
+
         </style>
 
 
@@ -1649,6 +1683,11 @@
                 updateHomeStats(); // تحديث إحصائيات الصفحة الرئيسية
 
                 console.log('تم تحميل البيانات بنجاح');
+                // ربط مستمع لحقل اسم العميل داخل نموذج الفاتورة
+                const customerInput = document.getElementById('customerName');
+                if (customerInput) {
+                    customerInput.addEventListener('input', handleCustomerNameInput);
+                }
 
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
@@ -1665,6 +1704,77 @@
             showSection('home'); // عرض الصفحة الرئيسية مباشرة
             initNotifications();
         });
+
+        // Attach listener for invoice customer name to suggest adding new client
+        function handleCustomerNameInput(e) {
+            const name = (e.target.value || '').trim();
+            if (!name) {
+                hideAddClientBubble();
+                return;
+            }
+            const exists = Array.isArray(clients) && clients.some(c => String(c.name).toLowerCase() === name.toLowerCase());
+            if (!exists) {
+                showAddClientBubble(name);
+            } else {
+                hideAddClientBubble();
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"'`]/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;',"`":'&#96;'})[s]);
+        }
+
+        function showAddClientBubble(name) {
+            const container = document.getElementById('addClientBubble');
+            if (!container) return;
+            container.classList.remove('success');
+            container.style.display = 'inline-flex';
+            container.innerHTML = `<span>العميل "${escapeHtml(name)}" غير موجود.</span> <button class="add-client-btn">أضف هذا العميل</button>`;
+            const btn = container.querySelector('.add-client-btn');
+            if (btn) {
+                btn.onclick = () => addClientFromInvoice(name);
+            }
+        }
+
+        function hideAddClientBubble() {
+            const container = document.getElementById('addClientBubble');
+            if (!container) return;
+            container.style.display = 'none';
+            container.innerHTML = '';
+            container.classList.remove('success');
+        }
+
+        function addClientFromInvoice(name) {
+            const container = document.getElementById('addClientBubble');
+            if (!container) return;
+            const currentName = document.getElementById('customerName') ? document.getElementById('customerName').value.trim() : name;
+            const phone = document.getElementById('phone') ? document.getElementById('phone').value.trim() : '';
+            const governorate = document.getElementById('governorate') ? document.getElementById('governorate').value : '';
+            const address = document.getElementById('address') ? document.getElementById('address').value.trim() : '';
+            const newClient = {
+                id: String(Date.now()),
+                name: currentName || name,
+                phone: phone,
+                governorate: governorate,
+                address: address
+            };
+            clients = Array.isArray(clients) ? clients : [];
+            clients.push(newClient);
+            // حفظ في Firebase
+            firebaseHelper.saveData('clients', clients)
+                .then(() => {
+                    // تحديث واجهة العملاء
+                    if (typeof updateClientsList === 'function') updateClientsList();
+                    // عرض رسالة نجاح داخل الفقاعة ثم الاختفاء
+                    container.classList.add('success');
+                    container.innerHTML = `<span>تم إضافة العميل بنجاح</span>`;
+                    setTimeout(() => hideAddClientBubble(), 1800);
+                })
+                .catch(error => {
+                    console.error('خطأ في إضافة العميل:', error);
+                    addNotification('خطأ', 'حدث خطأ أثناء إضافة العميل', 'error');
+                });
+        }
 
 
     </script>
@@ -1928,7 +2038,7 @@
 
         <div id="clients" class="section-content">
             <h2 class="section-title">قسم العملاء</h2>
-            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <button class="new-invoice-btn" onclick="showNewClientForm(true)">إضافة عميل جديد</button>
             <div id="clientsList"></div>
         </div>
 
@@ -2133,6 +2243,7 @@
                 <div class="form-group">
                     <label>اسم العميل</label>
                     <input type="text" id="customerName" required>
+                    <div id="addClientBubble" class="add-client-bubble" style="display:none" aria-live="polite"></div>
                 </div>
                 <div class="form-group">
                     <label>المحافظة</label>
@@ -2892,14 +3003,19 @@
 
 
 
-        function showNewClientForm() {
+        function showNewClientForm(isNew = false) {
             const modal = document.getElementById('clientModal');
-            modal.style.display = 'block';
+            if (isNew) {
+                modal.removeAttribute('data-editing-id');
+            }
             clearClientForm();
+            modal.style.display = 'block';
         }
 
         function closeClientModal() {
-            document.getElementById('clientModal').style.display = 'none';
+            const modal = document.getElementById('clientModal');
+            modal.style.display = 'none';
+            modal.removeAttribute('data-editing-id');
         }
 
         function clearClientForm() {
@@ -2930,7 +3046,7 @@
             };
 
             if (editingId) {
-                const index = clients.findIndex(c => c.id === Number(editingId));
+                const index = clients.findIndex(c => c.id == editingId);
                 if (index !== -1) {
                     clients[index] = clientData;
                     addNotification(
@@ -2947,6 +3063,9 @@
                     'success'
                 );
             }
+
+            // إزالة حالة التعديل بعد الحفظ
+            document.getElementById('clientModal').removeAttribute('data-editing-id');
 
             // حفظ في Firebase وتحديث الواجهة
             firebaseHelper.saveData('clients', clients)
@@ -3018,7 +3137,7 @@
 
         function deleteClient(id) {
             if (confirm('هل أنت متأكد من حذف هذا العميل؟')) {
-                clients = clients.filter(c => c.id !== id);
+                clients = clients.filter(c => c.id != id);
 
                 // حفظ في Firebase
                 firebaseHelper.saveData('clients', clients)
@@ -3032,9 +3151,9 @@
         }
 
         function editClient(id) {
-            const client = clients.find(c => c.id === id);
+            const client = clients.find(c => c.id == id);
             if (client) {
-                document.getElementById('clientModal').dataset.editingId = id;
+                document.getElementById('clientModal').dataset.editingId = String(id);
                 showNewClientForm();
 
                 document.getElementById('clientName').value = client.name;
@@ -3954,7 +4073,7 @@ function paginateProducts(pageNumber) {
                 controlsDiv.className = 'clients-controls';
                 controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
                 controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <button class="new-invoice-btn" onclick="showNewClientForm(true)">إضافة عميل جديد</button>
             <div class="search-box">
                 <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
                 <i class="fas fa-search search-icon"></i>
@@ -4784,7 +4903,7 @@ function paginateProducts(pageNumber) {
                 controlsDiv.className = 'clients-controls';
                 controlsDiv.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;';
                 controlsDiv.innerHTML = `
-            <button class="new-invoice-btn" onclick="showNewClientForm()">إضافة عميل جديد</button>
+            <button class="new-invoice-btn" onclick="showNewClientForm(true)">إضافة عميل جديد</button>
             <div class="search-box">
                 <input type="text" id="clientSearch" placeholder="البحث باسم العميل أو رقم الهاتف" class="search-input">
                 <i class="fas fa-search search-icon"></i>
