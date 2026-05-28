@@ -1683,11 +1683,19 @@
                 updateHomeStats(); // تحديث إحصائيات الصفحة الرئيسية
 
                 console.log('تم تحميل البيانات بنجاح');
-                // ربط مستمع لحقل اسم العميل داخل نموذج الفاتورة
+                // ربط مستمعات حقول العميل داخل نموذج الفاتورة
                 const customerInput = document.getElementById('customerName');
-                if (customerInput) {
-                    customerInput.addEventListener('input', handleCustomerNameInput);
-                }
+                const phoneInput = document.getElementById('phone');
+                const governorateInput = document.getElementById('governorate');
+                const addressInput = document.getElementById('address');
+
+                if (customerInput) customerInput.addEventListener('input', updateAddClientBubble);
+                if (phoneInput) phoneInput.addEventListener('input', updateAddClientBubble);
+                if (addressInput) addressInput.addEventListener('input', updateAddClientBubble);
+                if (governorateInput) governorateInput.addEventListener('change', () => {
+                    updateShippingCost(governorateInput.value);
+                    updateAddClientBubble();
+                });
 
             } catch (error) {
                 console.error('خطأ في تحميل البيانات:', error);
@@ -1705,14 +1713,28 @@
             initNotifications();
         });
 
-        // Attach listener for invoice customer name to suggest adding new client
-        function handleCustomerNameInput(e) {
-            const name = (e.target.value || '').trim();
-            if (!name) {
+        // Attach listener for invoice customer fields to suggest adding new client
+        function handleCustomerNameInput() {
+            updateAddClientBubble();
+        }
+
+        function updateAddClientBubble() {
+            const name = document.getElementById('customerName') ? document.getElementById('customerName').value.trim() : '';
+            const phone = document.getElementById('phone') ? document.getElementById('phone').value.trim() : '';
+            const governorate = document.getElementById('governorate') ? document.getElementById('governorate').value : '';
+            const address = document.getElementById('address') ? document.getElementById('address').value.trim() : '';
+            if (!name || !phone || !governorate || !address) {
                 hideAddClientBubble();
                 return;
             }
-            const exists = Array.isArray(clients) && clients.some(c => String(c.name).toLowerCase() === name.toLowerCase());
+
+            const exists = Array.isArray(clients) && clients.some(c =>
+                String(c.name).trim().toLowerCase() === name.toLowerCase() &&
+                String(c.phone).trim() === phone &&
+                String(c.governorate).trim().toLowerCase() === governorate.toLowerCase() &&
+                String(c.address).trim().toLowerCase() === address.toLowerCase()
+            );
+
             if (!exists) {
                 showAddClientBubble(name);
             } else {
@@ -2497,11 +2519,6 @@
             document.getElementById('invoiceDate').value = new Date().toLocaleDateString('ar-EG');
             clearInvoiceForm();
 
-            // إضافة مستمع حدث لتغيير المحافظة
-            document.getElementById('governorate').addEventListener('change', function () {
-                updateShippingCost(this.value);
-            });
-
             // إعداد الاقتراحات لاسم العميل
             setupAutoComplete('customerName', clients, 'name', (client) => {
                 if (client) {
@@ -2509,6 +2526,7 @@
                     document.getElementById('governorate').value = client.governorate;
                     document.getElementById('address').value = client.address;
                     updateShippingCost(client.governorate);
+                    updateAddClientBubble();
                 }
             });
         }
